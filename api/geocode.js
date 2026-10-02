@@ -5,7 +5,7 @@ module.exports = async (req, res) => {
   const text = String((req.query && req.query.text) || '').trim();
   if (text.length < 5) return res.status(400).json({ error: 'Address is too short.' });
   const p = new URLSearchParams({
-    api_key: key, text, size: '5',
+    api_key: key, text, size: '7',
     'boundary.country': 'CA',
     'focus.point.lon': '-93.4', 'focus.point.lat': '49.2'   // bias results toward NW Ontario
   });
@@ -15,6 +15,8 @@ module.exports = async (req, res) => {
     const j = await r.json();
     const results = (j.features || []).map(f => ({
       label: f.properties && f.properties.label,
+      layer: f.properties && f.properties.layer,            // "address" = exact house; "street" = street only
+      matchType: f.properties && f.properties.match_type,   // exact | interpolated | fallback
       lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1]
     })).filter(x => x.label);
     res.setHeader('Cache-Control', 's-maxage=3600');
