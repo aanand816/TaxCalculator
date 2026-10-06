@@ -692,10 +692,8 @@
         lon: b
       };
     }
-    /* Pelias (ORS) marks exact matches as layer "address"/"venue". Anything else is approximate. */
-    function isPrecise(layer, matchType) {
-      return (layer === 'address' || layer === 'venue') && matchType !==
-        'fallback';
+    function isPrecise(value) {
+      return value === true;
     }
 
     function calc(st) {
@@ -1348,6 +1346,7 @@
     let map = null,
       marker = null,
       lastLabel = '';
+    let addressLookupFailures = 0;
     async function apiGet(path) {
       let res;
       try {
@@ -1435,52 +1434,62 @@
       }
     }
     async function doLookup() {
-      const status = $id('lookupStatus'),
-        list = $id('sugg'),
-        text = $id('addr').value.trim();
+      const status = $id('lookupStatus');
+      const list = $id('sugg');
+      const text = $id('addr').value.trim();
+
       list.hidden = true;
       list.innerHTML = '';
+
       if (text.length < 5) {
-        status.textContent = 'Type a fuller address first.';
+        status.textContent =
+          'Enter a complete address, including the town.';
         status.className = 'note bad';
         return;
       }
+
       $id('lookup').disabled = true;
-      status.textContent = 'Searching…';
+      status.textContent = 'Searching Geoapify…';
       status.className = 'note';
+
       try {
-        const {
-          results
-        } = await apiGet('/api/geocode?text=' + encodeURIComponent(text));
-        if (!results || !results.length) throw new Error(
-          'No matches found. Try adding the town, or paste coordinates from Google Maps.'
+        const response = await apiGet(
+          '/api/geocode?text=' + encodeURIComponent(text)
         );
-        status.textContent = 'Pick the correct address:';
-        status.className = 'note';
-        results.forEach(r => {
-          const precise = isPrecise(r.layer, r.matchType);
-          const li = document.createElement('li');
-          li.innerHTML =
-            `${esc(r.label)} <span class="badge ${precise ? 'exact' : 'approx'}">${precise ? 'exact' : 'street only'}</span>`;
-          li.onclick = () => {
-            lastLabel = r.label;
-            $id('addr').value = r.label;
-            applyPoint({
-              lat: r.lat,
-              lon: r.lon,
-              label: r.label,
-              source: 'search',
-              precise
-            });
-          };
-          list.appendChild(li);
+
+        if (!response.results?.length) {
+          throw new Error('No matching address was found.');
+        }
+
+        const result = response.results[0];
+
+        addressLookupFailures = 0;
+        lastLabel = result.label;
+        $id('addr').value = result.label;
+
+        await applyPoint({
+          lat: result.lat,
+          lon: result.lon,
+          label: result.label,
+          source: 'search',
+          precise: result.precise
         });
-        list.hidden = false;
-      } catch (e) {
-        status.textContent = e.message;
+      } catch (error) {
+        addressLookupFailures++;
+
+        let message = error.message;
+
+        if (addressLookupFailures >= 3) {
+          message +=
+            ' This has failed three times. Paste latitude and longitude ' +
+            'from Google Maps into the coordinate field below.';
+        }
+
+        status.textContent = message;
         status.className = 'note bad';
+      } finally {
+        $id('lookup').disabled = false;
       }
-      $id('lookup').disabled = false;
     }
 
     function useCoords() {
