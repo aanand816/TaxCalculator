@@ -1,6 +1,6 @@
 // api/geocode.js
-// Vercel serverless function: address -> coordinates using Geoapify.
-// Keeps GEOAPIFY_API_KEY off the frontend.
+// Vercel serverless function: address -> coordinates using Geocoder.ca.
+// The auth token stays on the server (GEOCODER_CA_AUTH environment variable).
 
 const cache = new Map();
 
@@ -13,92 +13,139 @@ module.exports = async (req, res) => {
     });
   }
 
-  const apiKey = process.env.GEOAPIFY_API_KEY;
+  const auth = String(process.env.GEOCODER_CA_AUTH || '')
+    .trim()
+    .replace(/^["']|["']$/g, '');
 
-  if (!apiKey) {
+  if (!auth) {
     return res.status(500).json({
       error:
-        'Server is missing GEOAPIFY_API_KEY. Paste coordinates manually.'
+        'Server is missing GEOCODER_CA_AUTH. Paste coordinates manually.'
     });
   }
 
   const cacheKey = text.toLowerCase();
 
   if (cache.has(cacheKey)) {
-    return res.status(200).json({
-      results: cache.get(cacheKey)
-    });
+    return res.status(200).json({ results: cache.get(cacheKey) });
   }
 
   const params = new URLSearchParams({
-    text,
-    apiKey,
-    limit: '5',
-    filter: 'countrycode:ca',
-    bias: 'proximity:-93.4,49.2'
+    locate: text,
+    geoit: 'XML',
+    json: '1',
+    standard: '1',
+    showpostal: '1',
+    region: 'ON',
+    auth
   });
 
   try {
-    const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?${params.toString()}`
-    );
+    const response = await fetch(`https://geocoder.ca/?${params.toString()}`);
 
     if (!response.ok) {
       return res.status(502).json({
         error:
-          `Geoapify returned ${response.status}. ` +
+          `Geocoder.ca returned ${response.status}. ` +
           'Try again or paste coordinates manually.'
       });
     }
 
-    const data = await response.json();
+    const raw = await response.text();
 
-    const results = (data.features || [])
-      .map(feature => {
-        const lon = feature.geometry?.coordinates?.[0];
-        const lat = feature.geometry?.coordinates?.[1];
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (parseError) {
+      console.error('Geocoder.ca non-JSON response:', raw.slice(0, 300));
+      return res.status(502).json({
+        error:
+          'Geocoder.ca returned an unreadable response. ' +
+          'Paste coordinates manually.'
+      });
+    }
 
-        if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-          return null;
-        }
+    if (data.error) {
+      const code = data.error.code || '';
+      const description = data.error.description || '';
 
-        if (!isInNorthwesternOntario(lat, lon)) {
-          return null;
-        }
+      console.error('Geocoder.ca error:', code, description);
 
-        return {
-          label:
-            feature.properties?.formatted ||
-            feature.properties?.name ||
-            text,
-          lat,
-          lon,
-          precise: Boolean(
-            feature.properties?.housenumber ||
-            feature.properties?.rank?.confidence >= 0.8
-          )
-        };
-      })
-      .filter(Boolean);
+      if (String(code) === '001') {
+        return res.status(502).json({
+          error:
+            'Geocoder.ca rejected this server IP. Remove the IP restriction on your token.'
+        });
+      }
 
-    if (!results.length) {
+      if (String(code) === '002') {
+        return res.status(502).json({
+          error: 'Geocoder.ca credits are used up. Paste coordinates manually.'
+        });
+      }
+
+      if (String(code) === '003') {
+        return res.status(502).json({
+          error: 'Geocoder.ca token not found. Check GEOCODER_CA_AUTH in Vercel.'
+        });
+      }
+
       return res.status(404).json({
         error:
-          'No valid location was found in Northwestern Ontario. ' +
-          'Add the town name or paste coordinates manually.'
+          'No match found. Add the town name or paste coordinates manually.'
       });
+    }
+
+    const std = data.standard || data;
+
+    const lat = Number(data.latt);
+    const lon = Number(data.longt);
+    const confidence = Number(std.confidence ?? data.confidence);
+
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lon) ||
+      lat === 0 ||
+      lon === 0
+    ) {
+      return res.status(404).json({
+        error:
+          'No match found. Add the town name or paste coordinates manually.'
+      });
+    }
+
+    if (!isInNorthwesternOntario(lat, lon)) {
+      return res.status(404).json({
+        error:
+          'The result is outside Northwestern Ontario. ' +
+          'Check the town name or paste coordinates manually.'
+      });
+    }
+
+    const label =
+      [std.stnumber, std.staddress, std.city, std.prov, std.postal]
+        .filter(Boolean)
+        .join(' ') || text;
+
+    const results = [
+      {
+        label,
+        lat,
+        lon,
+        precise: Boolean(std.stnumber) && confidence >= 0.8,
+        confidence: Number.isFinite(confidence) ? confidence : null
+      }
+    ];
+
+    if (data.remaining_credits !== undefined) {
+      console.log('Geocoder.ca remaining credits:', data.remaining_credits);
     }
 
     cache.set(cacheKey, results);
 
-    res.setHeader(
-      'Cache-Control',
-      's-maxage=3600, stale-while-revalidate=86400'
-    );
-
     return res.status(200).json({ results });
   } catch (error) {
-    console.error('Geoapify geocode error:', error);
+    console.error('Geocoder.ca request failed:', error);
 
     return res.status(502).json({
       error:
@@ -109,10 +156,5 @@ module.exports = async (req, res) => {
 };
 
 function isInNorthwesternOntario(lat, lon) {
-  return (
-    lat >= 48.0 &&
-    lat <= 54.5 &&
-    lon >= -95.5 &&
-    lon <= -89.0
-  );
+  return lat >= 48.0 && lat <= 54.5 && lon >= -95.5 && lon <= -89.0;
 }
