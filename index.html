@@ -1,664 +1,1674 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tax Calculator — Fort Frances Window Labour</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-<style>
-  :root{--bg:#f4f6f9;--card:#fff;--ink:#1c2430;--mute:#667085;--line:#e3e8ef;--brand:#1f5fbf;--brand-d:#174a96;--ok:#12805c;--bad:#c0392b;--warn:#b45309}
-  *{box-sizing:border-box}
-  body{margin:0;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
-  header{background:#10233f;color:#fff;padding:14px 24px}
-  header h1{margin:0;font-size:18px} header p{margin:2px 0 0;color:#b8c7e0;font-size:12px}
-  .wrap{display:grid;grid-template-columns:1fr 300px;gap:18px;max-width:1280px;margin:18px auto;padding:0 16px}
-  @media(max-width:960px){.wrap{grid-template-columns:1fr}}
-  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-  .steps button{border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;color:var(--mute)}
-  .steps button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
-  .card h2{margin:0 0 10px;font-size:16px}
-  table{border-collapse:collapse;width:100%}
-  th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-  th{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.03em}
-  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-  input,select{font:inherit;padding:6px 8px;border:1px solid #cfd6e2;border-radius:6px;background:#fff;max-width:100%}
-  input.sm{width:84px} input.md{width:130px}
-  button.btn{background:var(--brand);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer}
-  button.btn:hover{background:var(--brand-d)} button.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
-  button.btn:disabled{opacity:.5;cursor:not-allowed}
-  button.x{background:none;border:0;color:var(--bad);cursor:pointer;font-size:16px}
-  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:10px}
-  .row label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mute);font-weight:600}
-  .note{font-size:12px;color:var(--mute)} .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
-  .drop{border:2px dashed #b9c4d6;border-radius:10px;padding:18px;text-align:center;color:var(--mute);cursor:pointer;background:#fafbfd}
-  .drop.over{border-color:var(--brand);background:#eef4ff}
-  .side{position:sticky;top:12px;align-self:start}
-  .side .line{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line)}
-  .side .total{font-size:18px;font-weight:700;border-bottom:0;padding-top:10px}
-  .nav{display:flex;justify-content:space-between;margin-top:8px}
-  tfoot td{font-weight:700;border-top:2px solid var(--line)}
-  .tag{display:inline-block;background:#eef4ff;color:var(--brand);border-radius:99px;padding:1px 8px;font-size:11px;font-weight:600}
-  .badge{display:inline-block;border-radius:99px;padding:0 8px;font-size:11px;font-weight:700;margin-left:6px}
-  .badge.exact{background:#e3f6ec;color:var(--ok)} .badge.approx{background:#fdf0dc;color:var(--warn)}
-  .sugg{list-style:none;margin:6px 0 0;padding:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-  .sugg li{padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer} .sugg li:last-child{border-bottom:0}
-  .sugg li:hover{background:#eef4ff}
-  .result{background:#f0f8f4;border:1px solid #bfe3d0;border-radius:8px;padding:10px 12px;margin:8px 0}
-  .result.free{background:#eef4ff;border-color:#c5d8f5}
-  .result.approx{background:#fff8ec;border-color:#f3d9a8}
-  #map{height:300px;border-radius:8px;border:1px solid var(--line)}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tax Calculator — Fort Frances Window Labour</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #fff;
+      --ink: #1c2430;
+      --mute: #667085;
+      --line: #e3e8ef;
+      --brand: #1f5fbf;
+      --brand-d: #174a96;
+      --ok: #12805c;
+      --bad: #c0392b;
+      --warn: #b45309
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink)
+    }
+
+    header {
+      background: #10233f;
+      color: #fff;
+      padding: 14px 24px
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px
+    }
+
+    header p {
+      margin: 2px 0 0;
+      color: #b8c7e0;
+      font-size: 12px
+    }
+
+    .wrap {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 18px;
+      max-width: 1280px;
+      margin: 18px auto;
+      padding: 0 16px
+    }
+
+    @media(max-width:960px) {
+      .wrap {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .steps {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px
+    }
+
+    .steps button {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--mute)
+    }
+
+    .steps button.active {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand)
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 14px
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 16px
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%
+    }
+
+    th,
+    td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle
+    }
+
+    th {
+      font-size: 12px;
+      color: var(--mute);
+      text-transform: uppercase;
+      letter-spacing: .03em
+    }
+
+    td.num,
+    th.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums
+    }
+
+    input,
+    select {
+      font: inherit;
+      padding: 6px 8px;
+      border: 1px solid #cfd6e2;
+      border-radius: 6px;
+      background: #fff;
+      max-width: 100%
+    }
+
+    input.sm {
+      width: 84px
+    }
+
+    input.md {
+      width: 130px
+    }
+
+    button.btn {
+      background: var(--brand);
+      color: #fff;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: 600;
+      cursor: pointer
+    }
+
+    button.btn:hover {
+      background: var(--brand-d)
+    }
+
+    button.ghost {
+      background: #fff;
+      color: var(--brand);
+      border: 1px solid var(--brand)
+    }
+
+    button.btn:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    button.x {
+      background: none;
+      border: 0;
+      color: var(--bad);
+      cursor: pointer;
+      font-size: 16px
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: end;
+      margin-bottom: 10px
+    }
+
+    .row label {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 12px;
+      color: var(--mute);
+      font-weight: 600
+    }
+
+    .note {
+      font-size: 12px;
+      color: var(--mute)
+    }
+
+    .ok {
+      color: var(--ok)
+    }
+
+    .bad {
+      color: var(--bad)
+    }
+
+    .warn {
+      color: var(--warn)
+    }
+
+    .drop {
+      border: 2px dashed #b9c4d6;
+      border-radius: 10px;
+      padding: 18px;
+      text-align: center;
+      color: var(--mute);
+      cursor: pointer;
+      background: #fafbfd
+    }
+
+    .drop.over {
+      border-color: var(--brand);
+      background: #eef4ff
+    }
+
+    .side {
+      position: sticky;
+      top: 12px;
+      align-self: start
+    }
+
+    .side .line {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--line)
+    }
+
+    .side .total {
+      font-size: 18px;
+      font-weight: 700;
+      border-bottom: 0;
+      padding-top: 10px
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px
+    }
+
+    tfoot td {
+      font-weight: 700;
+      border-top: 2px solid var(--line)
+    }
+
+    .tag {
+      display: inline-block;
+      background: #eef4ff;
+      color: var(--brand);
+      border-radius: 99px;
+      padding: 1px 8px;
+      font-size: 11px;
+      font-weight: 600
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 99px;
+      padding: 0 8px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 6px
+    }
+
+    .badge.exact {
+      background: #e3f6ec;
+      color: var(--ok)
+    }
+
+    .badge.approx {
+      background: #fdf0dc;
+      color: var(--warn)
+    }
+
+    .sugg {
+      list-style: none;
+      margin: 6px 0 0;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .sugg li {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer
+    }
+
+    .sugg li:last-child {
+      border-bottom: 0
+    }
+
+    .sugg li:hover {
+      background: #eef4ff
+    }
+
+    .result {
+      background: #f0f8f4;
+      border: 1px solid #bfe3d0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin: 8px 0
+    }
+
+    .result.free {
+      background: #eef4ff;
+      border-color: #c5d8f5
+    }
+
+    .result.approx {
+      background: #fff8ec;
+      border-color: #f3d9a8
+    }
+
+    #map {
+      height: 300px;
+      border-radius: 8px;
+      border: 1px solid var(--line)
+    }
+  </style>
 </head>
+
 <body>
-<header>
-  <h1>Tax Calculator — Window Labour</h1>
-  <p>Fort Frances rates · based on Jodi-Tax-Calc (Jan 16/26) · upload a manufacturer quote PDF to pull frame sizes</p>
-</header>
+  <header>
+    <h1>Tax Calculator — Window Labour</h1>
+    <p>Fort Frances rates · based on Jodi-Tax-Calc (Jan 16/26) · upload a
+      manufacturer quote PDF to pull frame sizes</p>
+  </header>
 
-<div class="wrap">
-<main>
-  <div class="steps" id="steps"></div>
+  <div class="wrap">
+    <main>
+      <div class="steps" id="steps"></div>
 
-  <section id="s1" class="step">
-    <div class="card">
-      <h2>1 · Upload quote PDF</h2>
-      <div class="drop" id="drop">Drop the manufacturer quote PDF here, or click to choose<input id="pdfFile" type="file" accept="application/pdf,.pdf" hidden></div>
-      <p class="note" id="pdfStatus">Only parent units are read (sub-items such as 1.1 / 1.2 are skipped). The FR (frame) size is used; quantity comes from the PDF and stays editable.</p>
-      <div class="row">
-        <label>Quote #<input id="quoteNo" class="md"></label>
-        <label>Customer<input id="customer" class="md" style="width:220px"></label>
+      <section id="s1" class="step">
+        <div class="card">
+          <h2>1 · Upload quote PDF</h2>
+          <div class="drop" id="drop">Drop the manufacturer quote PDF here, or
+            click to choose<input id="pdfFile" type="file" accept="application/pdf,.pdf" hidden></div>
+          <p class="note" id="pdfStatus">Only parent units are read (sub-items
+            such as 1.1 / 1.2 are skipped). The FR (frame) size is used;
+            quantity comes from the PDF and stays editable.</p>
+          <div class="row">
+            <label>Quote #<input id="quoteNo" class="md"></label>
+            <label>Customer<input id="customer" class="md" style="width:220px"></label>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Window sizes <span class="tag">editable</span></h2>
+          <p class="note">Sizes accept fractions, e.g. <b>61 1/4</b>. The
+            minimum is applied to each window first, then multiplied by quantity
+            (labour min $325 per window, misc min $74 per window).</p>
+          <table id="winTbl">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>PDF item</th>
+                <th>Width"</th>
+                <th>Height"</th>
+                <th>Qty</th>
+                <th class="num">Sq ft</th>
+                <th class="num">Linear ft</th>
+                <th class="num">Labour</th>
+                <th class="num">Misc</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5">Totals</td>
+                <td class="num" id="wSq"></td>
+                <td class="num" id="wLn"></td>
+                <td class="num" id="wLab"></td>
+                <td class="num" id="wMisc"></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+          <div class="row" style="margin-top:10px"><button class="btn ghost" id="addWin">+ Add window</button></div>
+        </div>
+      </section>
+
+      <section id="s2" class="step" hidden>
+        <div class="card">
+          <h2>2 · Per-window extras</h2>
+          <p class="note">Enter how many of each apply. Labour and misc are
+            calculated from the sheet rates.</p>
+          <table id="addTbl">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th class="num">Labour rate</th>
+                <th class="num">Misc rate</th>
+                <th class="num">Labour</th>
+                <th class="num">Misc</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4">Totals</td>
+                <td class="num" id="aLab"></td>
+                <td class="num" id="aMisc"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <section id="s3" class="step" hidden>
+        <div class="card">
+          <h2>3 · Travel &amp; set-up</h2>
+          <p class="note">Find the job location, and the app picks the closest
+            office by driving distance (Fort Frances, Kenora, Dryden, Sioux
+            Lookout). Round trip is always charged; one-way trips of 10 km or
+            less are free.</p>
+          <div class="row">
+            <label>Job address<input id="addr" style="width:380px"
+                placeholder="e.g. 275 1st Street E, Fort Frances"></label>
+            <button class="btn" id="lookup" type="button">Look up</button>
+          </div>
+          <p class="note" id="lookupStatus"></p>
+          <ul class="sugg" id="sugg" hidden></ul>
+          <div class="row">
+            <label>Or paste coordinates / Google Maps link<input id="coordIn" style="width:380px"
+                placeholder="48.6094, -93.4108   or   https://www.google.com/maps/@48.6094,-93.4108,17z"></label>
+            <button class="btn ghost" id="coordBtn" type="button">Use
+              coordinates</button>
+          </div>
+          <p class="note">Tip: in Google Maps, right-click the exact house and
+            click the coordinates at the top of the menu to copy them. Short
+            links (maps.app.goo.gl) cannot be read — open the link first and
+            copy from the address bar.</p>
+          <div id="travelResult"></div>
+          <div id="mapWrap" hidden>
+            <div id="map"></div>
+            <p class="note" id="mapHint">Drag the pin to the exact house. The
+              distance recalculates when you drop it.</p>
+          </div>
+          <h2 style="margin-top:14px">Charged amounts <span class="tag">editable
+              override</span></h2>
+          <div class="row">
+            <label>Round-trip km<input id="km" class="sm" type="number" min="0" step="0.1" value=""></label>
+            <label>Labour travel crew<select id="crew">
+                <option value="2" selected>2 men @ $150/hr</option>
+                <option value="3">3 men @ $200/hr</option>
+                <option value="none">None</option>
+              </select></label>
+            <label>Round-trip hours<input id="hours" class="sm" type="number" min="0" step="0.25" value=""></label>
+          </div>
+          <p class="note">Vehicle = km × $0.98. Hours are rounded up to the
+            nearest quarter hour. Type over these boxes to enter km and hours
+            manually.</p>
+          <div class="row">
+            <label>Per-job set-up fee<select id="setup">
+                <option value="0">None</option>
+                <option value="727.5">Standard — $727.50</option>
+                <option value="363.75">Smaller job — $363.75</option>
+              </select></label>
+          </div>
+          <p class="note">An additional fixed "All Job Set Up Fee" of
+            <b>$140.00</b> is always included (as on the sheet).
+          </p>
+        </div>
+      </section>
+
+      <section id="s4" class="step" hidden>
+        <div class="card">
+          <h2>4 · Jambs &amp; casing</h2>
+          <p class="note">Priced on total linear ft: <b id="lnTotal">0</b> ft.
+          </p>
+          <div class="row">
+            <label>Jamb<select id="jamb"></select></label>
+            <label>Custom jamb name<input id="jambName" class="md" placeholder="Custom jamb" disabled></label>
+            <label>Custom $ / lin ft<input id="jambRate" class="sm" type="number" min="0" step="0.01" disabled></label>
+          </div>
+          <div class="row">
+            <label>Casing<select id="casing"></select></label>
+            <label>Custom casing name<input id="casingName" class="md" placeholder="Custom casing" disabled></label>
+            <label>Custom $ / lin ft<input id="casingRate" class="sm" type="number" min="0" step="0.01"
+                disabled></label>
+          </div>
+          <p class="note">The sheet notes that vinyl casing without a jamb is
+            not added to its subtotal. Here a chosen casing is always charged —
+            pick "None" if you do not want it.</p>
+        </div>
+      </section>
+
+      <section id="s5" class="step" hidden>
+        <div class="card">
+          <h2>5 · Summary</h2>
+          <div class="row">
+            <label>Monthly discount ($)<input id="discount" class="sm" type="number" min="0" step="0.01"
+                value=""></label>
+            <label>HST<select id="hstOn">
+                <option value="1">13% HST</option>
+                <option value="0">No HST</option>
+              </select></label>
+          </div>
+          <table id="sumTbl">
+            <tbody></tbody>
+          </table>
+          <div class="row" style="margin-top:12px"><button class="btn" id="exportXlsx">Export to Excel</button><span
+              class="note" id="expNote"></span></div>
+        </div>
+      </section>
+
+      <div class="nav"><button class="btn ghost" id="back">←
+          Back</button><button class="btn" id="next">Next →</button></div>
+    </main>
+
+    <aside class="side">
+      <div class="card">
+        <h2>Live total</h2>
+        <div id="sideBox"></div>
       </div>
-    </div>
-    <div class="card">
-      <h2>Window sizes <span class="tag">editable</span></h2>
-      <p class="note">Sizes accept fractions, e.g. <b>61 1/4</b>. The minimum is applied to each window first, then multiplied by quantity (labour min $325 per window, misc min $74 per window).</p>
-      <table id="winTbl"><thead><tr><th>#</th><th>PDF item</th><th>Width"</th><th>Height"</th><th>Qty</th><th class="num">Sq ft</th><th class="num">Linear ft</th><th class="num">Labour</th><th class="num">Misc</th><th></th></tr></thead><tbody></tbody>
-      <tfoot><tr><td colspan="5">Totals</td><td class="num" id="wSq"></td><td class="num" id="wLn"></td><td class="num" id="wLab"></td><td class="num" id="wMisc"></td><td></td></tr></tfoot></table>
-      <div class="row" style="margin-top:10px"><button class="btn ghost" id="addWin">+ Add window</button></div>
-    </div>
-  </section>
+    </aside>
+  </div>
 
-  <section id="s2" class="step" hidden>
-    <div class="card">
-      <h2>2 · Per-window extras</h2>
-      <p class="note">Enter how many of each apply. Labour and misc are calculated from the sheet rates.</p>
-      <table id="addTbl"><thead><tr><th>Item</th><th>Qty</th><th class="num">Labour rate</th><th class="num">Misc rate</th><th class="num">Labour</th><th class="num">Misc</th></tr></thead><tbody></tbody>
-      <tfoot><tr><td colspan="4">Totals</td><td class="num" id="aLab"></td><td class="num" id="aMisc"></td></tr></tfoot></table>
-    </div>
-  </section>
-
-  <section id="s3" class="step" hidden>
-    <div class="card">
-      <h2>3 · Travel &amp; set-up</h2>
-      <p class="note">Find the job location, and the app picks the closest office by driving distance (Fort Frances, Kenora, Dryden, Sioux Lookout). Round trip is always charged; one-way trips of 10 km or less are free.</p>
-      <div class="row">
-        <label>Job address<input id="addr" style="width:380px" placeholder="e.g. 275 1st Street E, Fort Frances"></label>
-        <button class="btn" id="lookup" type="button">Look up</button>
-      </div>
-      <p class="note" id="lookupStatus"></p>
-      <ul class="sugg" id="sugg" hidden></ul>
-      <div class="row">
-        <label>Or paste coordinates / Google Maps link<input id="coordIn" style="width:380px" placeholder="48.6094, -93.4108   or   https://www.google.com/maps/@48.6094,-93.4108,17z"></label>
-        <button class="btn ghost" id="coordBtn" type="button">Use coordinates</button>
-      </div>
-      <p class="note">Tip: in Google Maps, right-click the exact house and click the coordinates at the top of the menu to copy them. Short links (maps.app.goo.gl) cannot be read — open the link first and copy from the address bar.</p>
-      <div id="travelResult"></div>
-      <div id="mapWrap" hidden>
-        <div id="map"></div>
-        <p class="note" id="mapHint">Drag the pin to the exact house. The distance recalculates when you drop it.</p>
-      </div>
-      <h2 style="margin-top:14px">Charged amounts <span class="tag">editable override</span></h2>
-      <div class="row">
-        <label>Round-trip km<input id="km" class="sm" type="number" min="0" step="0.1" value=""></label>
-        <label>Labour travel crew<select id="crew"><option value="2" selected>2 men @ $150/hr</option><option value="3">3 men @ $200/hr</option><option value="none">None</option></select></label>
-        <label>Round-trip hours<input id="hours" class="sm" type="number" min="0" step="0.25" value=""></label>
-      </div>
-      <p class="note">Vehicle = km × $0.98. Hours are rounded up to the nearest quarter hour. Type over these boxes to enter km and hours manually.</p>
-      <div class="row">
-        <label>Per-job set-up fee<select id="setup"><option value="0">None</option><option value="727.5">Standard — $727.50</option><option value="363.75">Smaller job — $363.75</option></select></label>
-      </div>
-      <p class="note">An additional fixed "All Job Set Up Fee" of <b>$140.00</b> is always included (as on the sheet).</p>
-    </div>
-  </section>
-
-  <section id="s4" class="step" hidden>
-    <div class="card">
-      <h2>4 · Jambs &amp; casing</h2>
-      <p class="note">Priced on total linear ft: <b id="lnTotal">0</b> ft.</p>
-      <div class="row">
-        <label>Jamb<select id="jamb"></select></label>
-        <label>Custom jamb name<input id="jambName" class="md" placeholder="Custom jamb" disabled></label>
-        <label>Custom $ / lin ft<input id="jambRate" class="sm" type="number" min="0" step="0.01" disabled></label>
-      </div>
-      <div class="row">
-        <label>Casing<select id="casing"></select></label>
-        <label>Custom casing name<input id="casingName" class="md" placeholder="Custom casing" disabled></label>
-        <label>Custom $ / lin ft<input id="casingRate" class="sm" type="number" min="0" step="0.01" disabled></label>
-      </div>
-      <p class="note">The sheet notes that vinyl casing without a jamb is not added to its subtotal. Here a chosen casing is always charged — pick "None" if you do not want it.</p>
-    </div>
-  </section>
-
-  <section id="s5" class="step" hidden>
-    <div class="card">
-      <h2>5 · Summary</h2>
-      <div class="row">
-        <label>Monthly discount ($)<input id="discount" class="sm" type="number" min="0" step="0.01" value=""></label>
-        <label>HST<select id="hstOn"><option value="1">13% HST</option><option value="0">No HST</option></select></label>
-      </div>
-      <table id="sumTbl"><tbody></tbody></table>
-      <div class="row" style="margin-top:12px"><button class="btn" id="exportXlsx">Export to Excel</button><span class="note" id="expNote"></span></div>
-    </div>
-  </section>
-
-  <div class="nav"><button class="btn ghost" id="back">← Back</button><button class="btn" id="next">Next →</button></div>
-</main>
-
-<aside class="side"><div class="card">
-  <h2>Live total</h2>
-  <div id="sideBox"></div>
-</div></aside>
-</div>
-
-<script>
-'use strict';
-const API_BASE = '';
-const RATES = {
-  labourPerSqft: 19, labourMin: 325, miscPerSqft: 8, miscMin: 74, extraLinPerWindow: 2.17,
-  km: 0.98, crew: { '2': 150, '3': 200 }, fixedSetup: 140, hst: 0.13, freeOneWayKm: 10
-};
-const ADDONS = [
-  { id:'blinds', label:'Blinds back on per window @ $60.00', lab:60, misc:0 },
-  { id:'drip',   label:'Drip edge install @ $30.00 per window', lab:30, misc:6.99 },
-  { id:'base',   label:'Basement windows $100.00 extra', lab:100, misc:0 },
-  { id:'stucco', label:'Cut stucco around NF for BM @ $75', lab:75, misc:0 },
-  { id:'siding', label:'Removal siding per window/door @ $130.00', lab:130, misc:0 },
-  { id:'scaf1',  label:'Scaffolding set up 1 section @ $60.00', lab:60, misc:0 },
-  { id:'scaf2',  label:'Scaffolding set up 2 sections @ $80.00', lab:80, misc:0 },
-  { id:'alum',   label:'Cut aluminum siding for BM @ $450', lab:450, misc:0 },
-  { id:'jchan',  label:'J channels (qty × $325 labour + $180 misc)', lab:325, misc:180 }
-];
-const JAMBS = [
-  { id:'j1', label:'Vinyl Wrapped Jamb – 3/4 x 2 1/2', rate:5.05 },
-  { id:'j2', label:'Vinyl Wrapped Jamb – 3/4 x 3 1/4', rate:6.05 },
-  { id:'j3', label:'Vinyl Wrapped Jamb – 3/4 x 4 1/2', rate:7.34 },
-  { id:'j4', label:'Vinyl Wrapped Jamb – 3/4 x 5 1/4', rate:8.49 },
-  { id:'j5', label:'Vinyl Wrapped Jamb – 3/4 x 6 3/4', rate:10.31 }
-];
-const CASINGS = [
-  { id:'vinyl', label:'Vinyl casing charge', rate:5.69 },
-  { id:'oak',   label:'Oak casing charge',   rate:8.16 }
-];
-
-const r2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
-function parseInches(v) {
-  const s = String(v ?? '').trim().replace(/"/g, '');
-  if (!s) return null;
-  let m = s.match(/^(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
-  if (m) return Number(m[1]) + Number(m[2]) / Number(m[3]);
-  m = s.match(/^(\d+)\s*\/\s*(\d+)$/);
-  if (m) return Number(m[1]) / Number(m[2]);
-  const n = Number(s);
-  return Number.isFinite(n) && n >= 0 ? n : null;
-}
-
-/* One-way <= 10 km is free; otherwise charge the full round trip. Hours round UP to 0.25. */
-function travelCharge(oneWayKm, oneWaySeconds) {
-  if (!(oneWayKm > RATES.freeOneWayKm)) return { free: true, km: 0, hours: 0 };
-  const hours = Math.ceil((2 * oneWaySeconds / 3600) * 4 - 1e-9) / 4;
-  return { free: false, km: Math.round(2 * oneWayKm * 100) / 100, hours };
-}
-
-/* Reads "48.6094, -93.4108", a Google Maps URL (@lat,lon or !3dLAT!4dLON), or "lat lon". Returns {lat, lon} or null. */
-function parseCoords(text) {
-  const s = String(text || '').trim();
-  if (!s) return null;
-  let m = s.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/) ||
-          s.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/) ||
-          s.match(/(?:[?&](?:q|ll|query)=)(-?\d+(?:\.\d+)?)[,%2C\s]+(-?\d+(?:\.\d+)?)/i) ||
-          s.match(/^\s*(-?\d{1,3}\.\d+)\s*[,;\s]\s*(-?\d{1,3}\.\d+)\s*$/);
-  if (!m) return null;
-  let a = Number(m[1]), b = Number(m[2]);
-  if (a < 0 && b > 0) [a, b] = [b, a];            // lon,lat order -> lat,lon
-  if (!(a >= 41 && a <= 84 && b <= -50 && b >= -141)) return null;   // must be inside Canada
-  return { lat: a, lon: b };
-}
-/* Pelias (ORS) marks exact matches as layer "address"/"venue". Anything else is approximate. */
-function isPrecise(layer, matchType) {
-  return (layer === 'address' || layer === 'venue') && matchType !== 'fallback';
-}
-
-function calc(st) {
-  const lines = [];
-  let sq = 0, ln = 0, wLab = 0, wMisc = 0;
-  st.windows.forEach(w => {
-    const W = parseInches(w.w), H = parseInches(w.h), q = Number(w.qty) || 0;
-    if (!W || !H || q <= 0) { lines.push(null); return; }
-    const unitSq = W * H / 144;
-    const sqft = unitSq * q;
-    const lin = (W * 2 + H * 2) / 12 * q + q * RATES.extraLinPerWindow;
-    const labRaw = unitSq * RATES.labourPerSqft, miscRaw = unitSq * RATES.miscPerSqft;
-    const lab = r2(Math.max(labRaw, RATES.labourMin) * q), misc = r2(Math.max(miscRaw, RATES.miscMin) * q);
-    lines.push({ W, H, q, sqft, lin, labRaw, miscRaw, lab, misc });
-    sq += sqft; ln += lin; wLab += lab; wMisc += misc;
-  });
-  const adds = ADDONS.map(a => {
-    const q = Number(st.addons[a.id]) || 0;
-    return { ...a, q, labTot: r2(q * a.lab), miscTot: r2(q * a.misc) };
-  });
-  const aLab = adds.reduce((s, a) => s + a.labTot, 0), aMisc = adds.reduce((s, a) => s + a.miscTot, 0);
-  const labourWindows = r2(wLab + aLab), miscTotal = r2(wMisc + aMisc);
-  const km = Number(st.km) || 0, hrs = Number(st.hours) || 0;
-  const crewRate = RATES.crew[st.crew] || 0;
-  const vehicle = r2(km * RATES.km);
-  const crewTravel = st.crew === 'none' ? 0 : r2(hrs * crewRate);
-  const setup = r2(Number(st.setup) || 0);
-  const fixed = RATES.fixedSetup;
-  const extras = r2(vehicle + crewTravel + setup + fixed);
-  const jamb = st.jamb.id === 'custom' ? { label: st.jamb.name || 'Custom jamb', rate: Number(st.jamb.rate) || 0 }
-    : st.jamb.id === 'none' ? null : JAMBS.find(j => j.id === st.jamb.id);
-  const casing = st.casing.id === 'custom' ? { label: st.casing.name || 'Custom casing', rate: Number(st.casing.rate) || 0 }
-    : st.casing.id === 'none' ? null : CASINGS.find(c => c.id === st.casing.id);
-  const jambTot = jamb ? r2(ln * jamb.rate) : 0, casingTot = casing ? r2(ln * casing.rate) : 0;
-  const jc = r2(jambTot + casingTot);
-  const labourTotal = r2(labourWindows + extras);
-  const discount = r2(Number(st.discount) || 0);
-  const subtotal = r2(labourTotal + miscTotal + jc - discount);
-  const hst = st.hstOn ? r2(subtotal * RATES.hst) : 0;
-  return { lines, sq, ln, wLab: r2(wLab), wMisc: r2(wMisc), adds, aLab: r2(aLab), aMisc: r2(aMisc),
-    labourWindows, miscTotal, km, hrs, crewRate, vehicle, crewTravel, setup, fixed, extras,
-    jamb, casing, jambTot, casingTot, jc, labourTotal, discount, subtotal, hst, total: r2(subtotal + hst) };
-}
-
-/* ================= PDF PARSING ================= */
-function pdfItemsToRows(items) {
-  const sorted = [...items].sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x);
-  const out = []; let cur = null;
-  for (const it of sorted) {
-    if (!String(it.str).trim()) continue;
-    if (!cur || cur.page !== it.page || Math.abs(it.y - cur.y) > 3) { cur = { page: it.page, y: it.y, items: [] }; out.push(cur); }
-    cur.items.push(it);
-  }
-  return out.map(r => {
-    const its = r.items.sort((a, b) => a.x - b.x);
-    const o = { page: r.page, y: r.y, no: '', qty: null, label: '', size: '', head: '' };
-    const lp = [], sp = [], hp = [];
-    for (const it of its) {
-      const s = String(it.str).trim();
-      if (it.x >= 330 && it.x < 520) hp.push(s);
-      if (it.x < 50 && !o.no && !lp.length && /^\d+(?:\.\d+)?$/.test(s)) { o.no = s; continue; }
-      if (it.x >= 250 && it.x < 275 && /^\d+$/.test(s)) { o.qty = Number(s); continue; }
-      if (it.x >= 275 && it.x < 372 && !/^\$/.test(s)) { sp.push(s); continue; }
-      if (it.x < 250) lp.push(s);
+  <script>
+    'use strict';
+    const API_BASE = '';
+    const RATES = {
+      labourPerSqft: 19,
+      labourMin: 325,
+      miscPerSqft: 8,
+      miscMin: 74,
+      extraLinPerWindow: 2.17,
+      km: 0.98,
+      crew: {
+        '2': 150,
+        '3': 200
+      },
+      fixedSetup: 140,
+      hst: 0.13,
+      freeOneWayKm: 10
+    };
+    const ADDONS = [{
+      id: 'blinds',
+      label: 'Blinds back on per window @ $60.00',
+      lab: 60,
+      misc: 0
+    },
+    {
+      id: 'drip',
+      label: 'Drip edge install @ $30.00 per window',
+      lab: 30,
+      misc: 6.99
+    },
+    {
+      id: 'base',
+      label: 'Basement windows $100.00 extra',
+      lab: 100,
+      misc: 0
+    },
+    {
+      id: 'stucco',
+      label: 'Cut stucco around NF for BM @ $75',
+      lab: 75,
+      misc: 0
+    },
+    {
+      id: 'siding',
+      label: 'Removal siding per window/door @ $130.00',
+      lab: 130,
+      misc: 0
+    },
+    {
+      id: 'scaf1',
+      label: 'Scaffolding set up 1 section @ $60.00',
+      lab: 60,
+      misc: 0
+    },
+    {
+      id: 'scaf2',
+      label: 'Scaffolding set up 2 sections @ $80.00',
+      lab: 80,
+      misc: 0
+    },
+    {
+      id: 'alum',
+      label: 'Cut aluminum siding for BM @ $450',
+      lab: 450,
+      misc: 0
+    },
+    {
+      id: 'jchan',
+      label: 'J channels (qty × $325 labour + $180 misc)',
+      lab: 325,
+      misc: 180
     }
-    o.label = lp.join(' ').replace(/\s+/g, ' ').trim();
-    o.size = sp.join(' ').replace(/\s+/g, ' ').trim();
-    o.head = hp.join(' ').trim();
-    return o;
-  }).filter(r => r.y < 740);
-}
-function parsePdfParents(items) {
-  const R = pdfItemsToRows(items);
-  const meta = { quote: '', customer: '' };
-  const hdr = R.find(r => /^\d{6}$/.test(r.no));
-  if (hdr) { meta.quote = hdr.no; meta.customer = hdr.head; }
-  const parents = [];
-  R.forEach((r, i) => {
-    if (!/^[1-9]\d*$/.test(r.no) || !r.label || r.qty === null) return;
-    let txt = r.size;
-    for (let k = i + 1; k < R.length; k++) {
-      if (R[k].no) break;
-      if (R[k].size) txt += ' ' + R[k].size;
-      if (/^LOT\/LOCATION/i.test(R[k].label)) break;
+    ];
+    const JAMBS = [{
+      id: 'j1',
+      label: 'Vinyl Wrapped Jamb – 3/4 x 2 1/2',
+      rate: 5.05
+    },
+    {
+      id: 'j2',
+      label: 'Vinyl Wrapped Jamb – 3/4 x 3 1/4',
+      rate: 6.05
+    },
+    {
+      id: 'j3',
+      label: 'Vinyl Wrapped Jamb – 3/4 x 4 1/2',
+      rate: 7.34
+    },
+    {
+      id: 'j4',
+      label: 'Vinyl Wrapped Jamb – 3/4 x 5 1/4',
+      rate: 8.49
+    },
+    {
+      id: 'j5',
+      label: 'Vinyl Wrapped Jamb – 3/4 x 6 3/4',
+      rate: 10.31
     }
-    const m = txt.match(/FR:\s*(.+?)\s+X\s+(.+?)\s*(?:BM:|$)/i);
-    parents.push({ item: r.no, qty: r.qty, desc: r.label, w: m ? m[1].trim() : '', h: m ? m[2].trim() : '' });
-  });
-  return { meta, parents };
-}
-async function readPdfItems(file) {
-  if (!window.pdfjsLib) throw new Error('PDF reader did not load. Connect to the internet and reload.');
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-  const doc = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-  const items = [];
-  for (let p = 1; p <= doc.numPages; p++) {
-    const page = await doc.getPage(p), h = page.getViewport({ scale: 1 }).height;
-    const c = await page.getTextContent();
-    for (const t of c.items) if (t.str && t.str.trim()) items.push({ page: p - 1, x: t.transform[4], y: h - t.transform[5], str: t.str });
-  }
-  return items;
-}
+    ];
+    const CASINGS = [{
+      id: 'vinyl',
+      label: 'Vinyl casing charge',
+      rate: 5.69
+    },
+    {
+      id: 'oak',
+      label: 'Oak casing charge',
+      rate: 8.16
+    }
+    ];
 
-/* ================= EXCEL EXPORT ================= */
-function buildSheet(st, c, XLSX) {
-  const ws = {}; let maxR = 0, maxC = 0;
-  const put = (col, row, v, f, z) => {
-    const cell = typeof v === 'number' ? { t: 'n', v } : { t: 's', v: String(v ?? '') };
-    if (f) cell.f = f; if (z) cell.z = z;
-    ws[XLSX.utils.encode_cell({ c: col, r: row - 1 })] = cell;
-    maxR = Math.max(maxR, row); maxC = Math.max(maxC, col);
-  };
-  const $ = '"$"#,##0.00', N2 = '0.00';
-  put(0,1,'FORT FRANCES WINDOWS — Window Labour Calc');
-  put(0,2,'Quote #: ' + (st.quoteNo || '') + '   Customer: ' + (st.customer || ''));
-  put(0,3,'Rates / minimums (per window) →');
-  put(5,3,RATES.extraLinPerWindow,null,N2); put(6,3,RATES.labourPerSqft,null,N2); put(7,3,RATES.labourMin,null,N2);
-  put(8,3,RATES.miscPerSqft,null,N2); put(9,3,RATES.miscMin,null,N2);
-  ['#','Width"','Height"','# Windows','Sqft','Linear Ft','Labour per window @ rate','Total Labour (min × qty)','Misc per window @ rate','Total Misc (min × qty)']
-    .forEach((h, i) => put(i, 4, h));
-  let row = 5; const aStart = row;
-  c.adds.forEach(a => {
-    put(0,row,a.label); put(3,row,a.q);
-    put(6,row,a.lab,null,N2); put(7,row,a.labTot,`D${row}*G${row}`,$);
-    put(8,row,a.misc,null,N2); put(9,row,a.miscTot,`D${row}*I${row}`,$);
-    row++;
-  });
-  const wStart = row;
-  st.windows.forEach((w, i) => {
-    const l = c.lines[i]; if (!l) return;
-    put(0,row,'Window ' + (i + 1) + (w.item ? ' (PDF item ' + w.item + ')' : ''));
-    put(1,row,l.W,null,N2); put(2,row,l.H,null,N2); put(3,row,l.q);
-    put(4,row,l.sqft,`B${row}*C${row}/144*D${row}`,N2);
-    put(5,row,l.lin,`(B${row}*2+C${row}*2)/12*D${row}+D${row}*$F$3`,N2);
-    put(6,row,l.labRaw,`B${row}*C${row}/144*$G$3`,$);
-    put(7,row,l.lab,`MAX(G${row},$H$3)*D${row}`,$);
-    put(8,row,l.miscRaw,`B${row}*C${row}/144*$I$3`,$);
-    put(9,row,l.misc,`MAX(I${row},$J$3)*D${row}`,$);
-    row++;
-  });
-  const wEnd = row - 1, tot = row;
-  put(0,tot,'Total');
-  if (wEnd >= wStart) {
-    put(4,tot,c.sq,`SUM(E${wStart}:E${wEnd})`,N2);
-    put(5,tot,c.ln,`SUM(F${wStart}:F${wEnd})`,N2);
-  } else { put(4,tot,0,null,N2); put(5,tot,0,null,N2); }
-  put(7,tot,c.labourWindows,`SUM(H${aStart}:H${Math.max(wEnd, aStart)})`,$);
-  put(9,tot,c.miscTotal,`SUM(J${aStart}:J${Math.max(wEnd, aStart)})`,$);
-  row += 2;
-  put(0,row,'Travel / labour'); row++;
-  const ti = st.travelInfo;
-  if (ti) {
-    put(0,row,'Job location: ' + ti.address); row++;
-    const src = ti.source === 'pin' ? 'pinned on map' : ti.source === 'paste' ? 'pasted coordinates'
-      : (ti.precise ? 'address match' : 'street-level address match (approximate)');
-    put(0,row,`Location source: ${src} (${ti.lat.toFixed(5)}, ${ti.lon.toFixed(5)})`); row++;
-    put(0,row,`Closest office: ${ti.office} — one-way ${ti.oneWayKm.toFixed(1)} km, ${Math.round(ti.oneWaySec / 60)} min` +
-      (ti.oneWayKm <= RATES.freeOneWayKm ? ' (within 10 km: no travel charge)' : ' (round trip charged)')); row++;
-  }
-  const t0 = row;
-  put(0,row,'Vehicle: round-trip km × rate'); put(3,row,c.km); put(6,row,RATES.km,null,N2); put(7,row,c.vehicle,`D${row}*G${row}`,$); row++;
-  put(0,row,st.crew === 'none' ? 'Labour travel (none selected)' : `Labour travel per hour (round trip), ${st.crew} men`);
-  put(3,row,st.crew === 'none' ? 0 : c.hrs); put(6,row,c.crewRate,null,N2); put(7,row,c.crewTravel,`D${row}*G${row}`,$); row++;
-  put(0,row,'Per-job set-up fee'); put(3,row,Number(st.setup) ? 1 : 0); put(6,row,Number(st.setup) || 0,null,N2); put(7,row,c.setup,`D${row}*G${row}`,$); row++;
-  put(0,row,'All Job Set Up Fee (fixed)'); put(7,row,c.fixed,null,$); row++;
-  const extrasRow = row;
-  put(0,row,'Total of Extras'); put(7,row,c.extras,`SUM(H${t0}:H${row - 1})`,$); row += 2;
-  put(0,row,'Jambs + Casings (priced on total linear ft)'); row++;
-  const jr = row;
-  put(0,row,c.jamb ? c.jamb.label : 'Jamb: none'); put(5,row,c.ln,`F${tot}`,N2); put(6,row,c.jamb ? c.jamb.rate : 0,null,N2); put(7,row,c.jambTot,`F${row}*G${row}`,$); row++;
-  put(0,row,c.casing ? c.casing.label : 'Casing: none'); put(5,row,c.ln,`F${tot}`,N2); put(6,row,c.casing ? c.casing.rate : 0,null,N2); put(7,row,c.casingTot,`F${row}*G${row}`,$); row++;
-  const jcRow = row;
-  put(0,row,'Total Jambs + Casings'); put(7,row,c.jc,`SUM(H${jr}:H${row - 1})`,$); row += 2;
-  put(0,row,'SUMMARY'); row++;
-  const sL = row;
-  put(0,row,'Labour (windows + extras)'); put(7,row,c.labourTotal,`H${tot}+H${extrasRow}`,$); row++;
-  put(0,row,'Misc'); put(7,row,c.miscTotal,`J${tot}`,$); row++;
-  put(0,row,'Jambs + Casings'); put(7,row,c.jc,`H${jcRow}`,$); row++;
-  put(0,row,'Monthly discount (entered)'); put(7,row,c.discount,null,$); const dRow = row; row++;
-  const subRow = row;
-  put(0,row,'Subtotal'); put(7,row,c.subtotal,`SUM(H${sL}:H${sL + 2})-H${dRow}`,$); row++;
-  put(0,row,st.hstOn ? 'HST 13%' : 'HST (not applied)'); put(7,row,c.hst,st.hstOn ? `ROUND(H${subRow}*0.13,2)` : null,$); const hRow = row; row++;
-  put(0,row,'TOTAL'); put(7,row,c.total,`H${subRow}+H${hRow}`,$);
-  ws['!ref'] = XLSX.utils.encode_range({ s: { c: 0, r: 0 }, e: { c: maxC, r: maxR - 1 } });
-  ws['!cols'] = [{ wch: 52 },{ wch: 9 },{ wch: 9 },{ wch: 10 },{ wch: 9 },{ wch: 10 },{ wch: 22 },{ wch: 24 },{ wch: 22 },{ wch: 22 }];
-  return ws;
-}
+    const r2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
 
-/* ================= UI ================= */
-const state = {
-  step: 1, quoteNo: '', customer: '',
-  windows: [{ item: '', w: '', h: '', qty: 1 }],
-  addons: {}, km: '', crew: '2', hours: '', setup: '0', travelInfo: null,
-  jamb: { id: 'none', name: '', rate: '' }, casing: { id: 'none', name: '', rate: '' },
-  discount: '', hstOn: true
-};
-const $id = id => document.getElementById(id);
-const fmt = n => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(n);
-const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-const STEP_NAMES = ['Windows', 'Extras', 'Travel', 'Jambs & casing', 'Summary'];
-const MAX_STEP = STEP_NAMES.length;
+    function parseInches(v) {
+      const s = String(v ?? '').trim().replace(/"/g, '');
+      if (!s) return null;
+      let m = s.match(/^(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+      if (m) return Number(m[1]) + Number(m[2]) / Number(m[3]);
+      m = s.match(/^(\d+)\s*\/\s*(\d+)$/);
+      if (m) return Number(m[1]) / Number(m[2]);
+      const n = Number(s);
+      return Number.isFinite(n) && n >= 0 ? n : null;
+    }
 
-function renderSteps() {
-  $id('steps').innerHTML = '';
-  STEP_NAMES.forEach((n, i) => {
-    const b = document.createElement('button');
-    b.textContent = (i + 1) + '. ' + n;
-    b.className = state.step === i + 1 ? 'active' : '';
-    b.onclick = () => { state.step = i + 1; showStep(); };
-    $id('steps').appendChild(b);
-  });
-}
-function showStep() {
-  for (let i = 1; i <= MAX_STEP; i++) $id('s' + i).hidden = state.step !== i;
-  $id('back').style.visibility = state.step === 1 ? 'hidden' : 'visible';
-  $id('next').style.visibility = state.step === MAX_STEP ? 'hidden' : 'visible';
-  renderSteps(); refresh();
-  if (state.step === 3 && map) setTimeout(() => map.invalidateSize(), 50);
-}
-function renderWindows() {
-  const tb = $id('winTbl').querySelector('tbody'); tb.innerHTML = '';
-  state.windows.forEach((w, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${i + 1}</td><td>${esc(w.item || '—')}</td>
+    /* One-way <= 10 km is free; otherwise charge the full round trip. Hours round UP to 0.25. */
+    function travelCharge(oneWayKm, oneWaySeconds) {
+      if (!(oneWayKm > RATES.freeOneWayKm)) return {
+        free: true,
+        km: 0,
+        hours: 0
+      };
+      const hours = Math.ceil((2 * oneWaySeconds / 3600) * 4 - 1e-9) / 4;
+      return {
+        free: false,
+        km: Math.round(2 * oneWayKm * 100) / 100,
+        hours
+      };
+    }
+
+    /* Reads "48.6094, -93.4108", a Google Maps URL (@lat,lon or !3dLAT!4dLON), or "lat lon". Returns {lat, lon} or null. */
+    function parseCoords(text) {
+      const s = String(text || '').trim();
+      if (!s) return null;
+      let m = s.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/) ||
+        s.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/) ||
+        s.match(
+          /(?:[?&](?:q|ll|query)=)(-?\d+(?:\.\d+)?)[,%2C\s]+(-?\d+(?:\.\d+)?)/i
+        ) ||
+        s.match(/^\s*(-?\d{1,3}\.\d+)\s*[,;\s]\s*(-?\d{1,3}\.\d+)\s*$/);
+      if (!m) return null;
+      let a = Number(m[1]),
+        b = Number(m[2]);
+      if (a < 0 && b > 0) [a, b] = [b, a]; // lon,lat order -> lat,lon
+      if (!(a >= 41 && a <= 84 && b <= -50 && b >= -141))
+        return null; // must be inside Canada
+      return {
+        lat: a,
+        lon: b
+      };
+    }
+    /* Pelias (ORS) marks exact matches as layer "address"/"venue". Anything else is approximate. */
+    function isPrecise(layer, matchType) {
+      return (layer === 'address' || layer === 'venue') && matchType !==
+        'fallback';
+    }
+
+    function calc(st) {
+      const lines = [];
+      let sq = 0,
+        ln = 0,
+        wLab = 0,
+        wMisc = 0;
+      st.windows.forEach(w => {
+        const W = parseInches(w.w),
+          H = parseInches(w.h),
+          q = Number(w.qty) || 0;
+        if (!W || !H || q <= 0) {
+          lines.push(null);
+          return;
+        }
+        const unitSq = W * H / 144;
+        const sqft = unitSq * q;
+        const lin = (W * 2 + H * 2) / 12 * q + q * RATES.extraLinPerWindow;
+        const labRaw = unitSq * RATES.labourPerSqft,
+          miscRaw = unitSq * RATES.miscPerSqft;
+        const lab = r2(Math.max(labRaw, RATES.labourMin) * q),
+          misc = r2(Math.max(miscRaw, RATES.miscMin) * q);
+        lines.push({
+          W,
+          H,
+          q,
+          sqft,
+          lin,
+          labRaw,
+          miscRaw,
+          lab,
+          misc
+        });
+        sq += sqft;
+        ln += lin;
+        wLab += lab;
+        wMisc += misc;
+      });
+      const adds = ADDONS.map(a => {
+        const q = Number(st.addons[a.id]) || 0;
+        return {
+          ...a,
+          q,
+          labTot: r2(q * a.lab),
+          miscTot: r2(q * a.misc)
+        };
+      });
+      const aLab = adds.reduce((s, a) => s + a.labTot, 0),
+        aMisc = adds.reduce((s, a) => s + a.miscTot, 0);
+      const labourWindows = r2(wLab + aLab),
+        miscTotal = r2(wMisc + aMisc);
+      const km = Number(st.km) || 0,
+        hrs = Number(st.hours) || 0;
+      const crewRate = RATES.crew[st.crew] || 0;
+      const vehicle = r2(km * RATES.km);
+      const crewTravel = st.crew === 'none' ? 0 : r2(hrs * crewRate);
+      const setup = r2(Number(st.setup) || 0);
+      const fixed = RATES.fixedSetup;
+      const extras = r2(vehicle + crewTravel + setup + fixed);
+      const jamb = st.jamb.id === 'custom' ? {
+        label: st.jamb.name || 'Custom jamb',
+        rate: Number(st.jamb.rate) || 0
+      } :
+        st.jamb.id === 'none' ? null : JAMBS.find(j => j.id === st.jamb.id);
+      const casing = st.casing.id === 'custom' ? {
+        label: st.casing.name || 'Custom casing',
+        rate: Number(st.casing.rate) || 0
+      } :
+        st.casing.id === 'none' ? null : CASINGS.find(c => c.id === st.casing
+          .id);
+      const jambTot = jamb ? r2(ln * jamb.rate) : 0,
+        casingTot = casing ? r2(ln * casing.rate) : 0;
+      const jc = r2(jambTot + casingTot);
+      const labourTotal = r2(labourWindows + extras);
+      const discount = r2(Number(st.discount) || 0);
+      const subtotal = r2(labourTotal + miscTotal + jc - discount);
+      const hst = st.hstOn ? r2(subtotal * RATES.hst) : 0;
+      return {
+        lines,
+        sq,
+        ln,
+        wLab: r2(wLab),
+        wMisc: r2(wMisc),
+        adds,
+        aLab: r2(aLab),
+        aMisc: r2(aMisc),
+        labourWindows,
+        miscTotal,
+        km,
+        hrs,
+        crewRate,
+        vehicle,
+        crewTravel,
+        setup,
+        fixed,
+        extras,
+        jamb,
+        casing,
+        jambTot,
+        casingTot,
+        jc,
+        labourTotal,
+        discount,
+        subtotal,
+        hst,
+        total: r2(subtotal + hst)
+      };
+    }
+
+    /* ================= PDF PARSING ================= */
+    function pdfItemsToRows(items) {
+      const sorted = [...items].sort((a, b) => a.page - b.page || a.y - b.y || a
+        .x - b.x);
+      const out = [];
+      let cur = null;
+      for (const it of sorted) {
+        if (!String(it.str).trim()) continue;
+        if (!cur || cur.page !== it.page || Math.abs(it.y - cur.y) > 3) {
+          cur = {
+            page: it.page,
+            y: it.y,
+            items: []
+          };
+          out.push(cur);
+        }
+        cur.items.push(it);
+      }
+      return out.map(r => {
+        const its = r.items.sort((a, b) => a.x - b.x);
+        const o = {
+          page: r.page,
+          y: r.y,
+          no: '',
+          qty: null,
+          label: '',
+          size: '',
+          head: ''
+        };
+        const lp = [],
+          sp = [],
+          hp = [];
+        for (const it of its) {
+          const s = String(it.str).trim();
+          if (it.x >= 330 && it.x < 520) hp.push(s);
+          if (it.x < 50 && !o.no && !lp.length && /^\d+(?:\.\d+)?$/.test(
+            s)) {
+            o.no = s;
+            continue;
+          }
+          if (it.x >= 250 && it.x < 275 && /^\d+$/.test(s)) {
+            o.qty = Number(s);
+            continue;
+          }
+          if (it.x >= 275 && it.x < 372 && !/^\$/.test(s)) {
+            sp.push(s);
+            continue;
+          }
+          if (it.x < 250) lp.push(s);
+        }
+        o.label = lp.join(' ').replace(/\s+/g, ' ').trim();
+        o.size = sp.join(' ').replace(/\s+/g, ' ').trim();
+        o.head = hp.join(' ').trim();
+        return o;
+      }).filter(r => r.y < 740);
+    }
+
+    function parsePdfParents(items) {
+      const R = pdfItemsToRows(items);
+      const meta = {
+        quote: '',
+        customer: ''
+      };
+      const hdr = R.find(r => /^\d{6}$/.test(r.no));
+      if (hdr) {
+        meta.quote = hdr.no;
+        meta.customer = hdr.head;
+      }
+      const parents = [];
+      R.forEach((r, i) => {
+        if (!/^[1-9]\d*$/.test(r.no) || !r.label || r.qty === null) return;
+        let txt = r.size;
+        for (let k = i + 1; k < R.length; k++) {
+          if (R[k].no) break;
+          if (R[k].size) txt += ' ' + R[k].size;
+          if (/^LOT\/LOCATION/i.test(R[k].label)) break;
+        }
+        const m = txt.match(/FR:\s*(.+?)\s+X\s+(.+?)\s*(?:BM:|$)/i);
+        parents.push({
+          item: r.no,
+          qty: r.qty,
+          desc: r.label,
+          w: m ? m[1].trim() : '',
+          h: m ? m[2].trim() : ''
+        });
+      });
+      return {
+        meta,
+        parents
+      };
+    }
+    async function readPdfItems(file) {
+      if (!window.pdfjsLib) throw new Error(
+        'PDF reader did not load. Connect to the internet and reload.');
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      const doc = await pdfjsLib.getDocument({
+        data: await file.arrayBuffer()
+      }).promise;
+      const items = [];
+      for (let p = 1; p <= doc.numPages; p++) {
+        const page = await doc.getPage(p),
+          h = page.getViewport({
+            scale: 1
+          }).height;
+        const c = await page.getTextContent();
+        for (const t of c.items)
+          if (t.str && t.str.trim()) items.push({
+            page: p - 1,
+            x: t.transform[4],
+            y: h - t.transform[5],
+            str: t.str
+          });
+      }
+      return items;
+    }
+
+    /* ================= EXCEL EXPORT ================= */
+    function buildSheet(st, c, XLSX) {
+      const ws = {};
+      let maxR = 0,
+        maxC = 0;
+      const put = (col, row, v, f, z) => {
+        const cell = typeof v === 'number' ? {
+          t: 'n',
+          v
+        } : {
+          t: 's',
+          v: String(v ?? '')
+        };
+        if (f) cell.f = f;
+        if (z) cell.z = z;
+        ws[XLSX.utils.encode_cell({
+          c: col,
+          r: row - 1
+        })] = cell;
+        maxR = Math.max(maxR, row);
+        maxC = Math.max(maxC, col);
+      };
+      const $ = '"$"#,##0.00',
+        N2 = '0.00';
+      put(0, 1, 'FORT FRANCES WINDOWS — Window Labour Calc');
+      put(0, 2, 'Quote #: ' + (st.quoteNo || '') + '   Customer: ' + (st
+        .customer || ''));
+      put(0, 3, 'Rates / minimums (per window) →');
+      put(5, 3, RATES.extraLinPerWindow, null, N2);
+      put(6, 3, RATES.labourPerSqft, null, N2);
+      put(7, 3, RATES.labourMin, null, N2);
+      put(8, 3, RATES.miscPerSqft, null, N2);
+      put(9, 3, RATES.miscMin, null, N2);
+      ['#', 'Width"', 'Height"', '# Windows', 'Sqft', 'Linear Ft',
+        'Labour per window @ rate', 'Total Labour (min × qty)',
+        'Misc per window @ rate', 'Total Misc (min × qty)'
+      ]
+        .forEach((h, i) => put(i, 4, h));
+      let row = 5;
+      const aStart = row;
+      c.adds.forEach(a => {
+        put(0, row, a.label);
+        put(3, row, a.q);
+        put(6, row, a.lab, null, N2);
+        put(7, row, a.labTot, `D${row}*G${row}`, $);
+        put(8, row, a.misc, null, N2);
+        put(9, row, a.miscTot, `D${row}*I${row}`, $);
+        row++;
+      });
+      const wStart = row;
+      st.windows.forEach((w, i) => {
+        const l = c.lines[i];
+        if (!l) return;
+        put(0, row, 'Window ' + (i + 1) + (w.item ? ' (PDF item ' + w.item +
+          ')' : ''));
+        put(1, row, l.W, null, N2);
+        put(2, row, l.H, null, N2);
+        put(3, row, l.q);
+        put(4, row, l.sqft, `B${row}*C${row}/144*D${row}`, N2);
+        put(5, row, l.lin, `(B${row}*2+C${row}*2)/12*D${row}+D${row}*$F$3`,
+          N2);
+        put(6, row, l.labRaw, `B${row}*C${row}/144*$G$3`, $);
+        put(7, row, l.lab, `MAX(G${row},$H$3)*D${row}`, $);
+        put(8, row, l.miscRaw, `B${row}*C${row}/144*$I$3`, $);
+        put(9, row, l.misc, `MAX(I${row},$J$3)*D${row}`, $);
+        row++;
+      });
+      const wEnd = row - 1,
+        tot = row;
+      put(0, tot, 'Total');
+      if (wEnd >= wStart) {
+        put(4, tot, c.sq, `SUM(E${wStart}:E${wEnd})`, N2);
+        put(5, tot, c.ln, `SUM(F${wStart}:F${wEnd})`, N2);
+      } else {
+        put(4, tot, 0, null, N2);
+        put(5, tot, 0, null, N2);
+      }
+      put(7, tot, c.labourWindows, `SUM(H${aStart}:H${Math.max(wEnd, aStart)})`,
+        $);
+      put(9, tot, c.miscTotal, `SUM(J${aStart}:J${Math.max(wEnd, aStart)})`, $);
+      row += 2;
+      put(0, row, 'Travel / labour');
+      row++;
+      const ti = st.travelInfo;
+      if (ti) {
+        put(0, row, 'Job location: ' + ti.address);
+        row++;
+        const src = ti.source === 'pin' ? 'pinned on map' : ti.source ===
+          'paste' ? 'pasted coordinates' :
+          (ti.precise ? 'address match' :
+            'street-level address match (approximate)');
+        put(0, row,
+          `Location source: ${src} (${ti.lat.toFixed(5)}, ${ti.lon.toFixed(5)})`
+        );
+        row++;
+        put(0, row,
+          `Closest office: ${ti.office} — one-way ${ti.oneWayKm.toFixed(1)} km, ${Math.round(ti.oneWaySec / 60)} min` +
+          (ti.oneWayKm <= RATES.freeOneWayKm ?
+            ' (within 10 km: no travel charge)' : ' (round trip charged)'));
+        row++;
+      }
+      const t0 = row;
+      put(0, row, 'Vehicle: round-trip km × rate');
+      put(3, row, c.km);
+      put(6, row, RATES.km, null, N2);
+      put(7, row, c.vehicle, `D${row}*G${row}`, $);
+      row++;
+      put(0, row, st.crew === 'none' ? 'Labour travel (none selected)' :
+        `Labour travel per hour (round trip), ${st.crew} men`);
+      put(3, row, st.crew === 'none' ? 0 : c.hrs);
+      put(6, row, c.crewRate, null, N2);
+      put(7, row, c.crewTravel, `D${row}*G${row}`, $);
+      row++;
+      put(0, row, 'Per-job set-up fee');
+      put(3, row, Number(st.setup) ? 1 : 0);
+      put(6, row, Number(st.setup) || 0, null, N2);
+      put(7, row, c.setup, `D${row}*G${row}`, $);
+      row++;
+      put(0, row, 'All Job Set Up Fee (fixed)');
+      put(7, row, c.fixed, null, $);
+      row++;
+      const extrasRow = row;
+      put(0, row, 'Total of Extras');
+      put(7, row, c.extras, `SUM(H${t0}:H${row - 1})`, $);
+      row += 2;
+      put(0, row, 'Jambs + Casings (priced on total linear ft)');
+      row++;
+      const jr = row;
+      put(0, row, c.jamb ? c.jamb.label : 'Jamb: none');
+      put(5, row, c.ln, `F${tot}`, N2);
+      put(6, row, c.jamb ? c.jamb.rate : 0, null, N2);
+      put(7, row, c.jambTot, `F${row}*G${row}`, $);
+      row++;
+      put(0, row, c.casing ? c.casing.label : 'Casing: none');
+      put(5, row, c.ln, `F${tot}`, N2);
+      put(6, row, c.casing ? c.casing.rate : 0, null, N2);
+      put(7, row, c.casingTot, `F${row}*G${row}`, $);
+      row++;
+      const jcRow = row;
+      put(0, row, 'Total Jambs + Casings');
+      put(7, row, c.jc, `SUM(H${jr}:H${row - 1})`, $);
+      row += 2;
+      put(0, row, 'SUMMARY');
+      row++;
+      const sL = row;
+      put(0, row, 'Labour (windows + extras)');
+      put(7, row, c.labourTotal, `H${tot}+H${extrasRow}`, $);
+      row++;
+      put(0, row, 'Misc');
+      put(7, row, c.miscTotal, `J${tot}`, $);
+      row++;
+      put(0, row, 'Jambs + Casings');
+      put(7, row, c.jc, `H${jcRow}`, $);
+      row++;
+      put(0, row, 'Monthly discount (entered)');
+      put(7, row, c.discount, null, $);
+      const dRow = row;
+      row++;
+      const subRow = row;
+      put(0, row, 'Subtotal');
+      put(7, row, c.subtotal, `SUM(H${sL}:H${sL + 2})-H${dRow}`, $);
+      row++;
+      put(0, row, st.hstOn ? 'HST 13%' : 'HST (not applied)');
+      put(7, row, c.hst, st.hstOn ? `ROUND(H${subRow}*0.13,2)` : null, $);
+      const hRow = row;
+      row++;
+      put(0, row, 'TOTAL');
+      put(7, row, c.total, `H${subRow}+H${hRow}`, $);
+      ws['!ref'] = XLSX.utils.encode_range({
+        s: {
+          c: 0,
+          r: 0
+        },
+        e: {
+          c: maxC,
+          r: maxR - 1
+        }
+      });
+      ws['!cols'] = [{
+        wch: 52
+      }, {
+        wch: 9
+      }, {
+        wch: 9
+      }, {
+        wch: 10
+      }, {
+        wch: 9
+      }, {
+        wch: 10
+      }, {
+        wch: 22
+      }, {
+        wch: 24
+      }, {
+        wch: 22
+      }, {
+        wch: 22
+      }];
+      return ws;
+    }
+
+    /* ================= UI ================= */
+    const state = {
+      step: 1,
+      quoteNo: '',
+      customer: '',
+      windows: [{
+        item: '',
+        w: '',
+        h: '',
+        qty: 1
+      }],
+      addons: {},
+      km: '',
+      crew: '2',
+      hours: '',
+      setup: '0',
+      travelInfo: null,
+      jamb: {
+        id: 'none',
+        name: '',
+        rate: ''
+      },
+      casing: {
+        id: 'none',
+        name: '',
+        rate: ''
+      },
+      discount: '',
+      hstOn: true
+    };
+    const $id = id => document.getElementById(id);
+    const fmt = n => new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: 'CAD'
+    }).format(n);
+    const esc = s => String(s).replace(/[&<>"]/g, ch => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;'
+    }[ch]));
+    const STEP_NAMES = ['Windows', 'Extras', 'Travel', 'Jambs & casing',
+      'Summary'
+    ];
+    const MAX_STEP = STEP_NAMES.length;
+
+    function renderSteps() {
+      $id('steps').innerHTML = '';
+      STEP_NAMES.forEach((n, i) => {
+        const b = document.createElement('button');
+        b.textContent = (i + 1) + '. ' + n;
+        b.className = state.step === i + 1 ? 'active' : '';
+        b.onclick = () => {
+          state.step = i + 1;
+          showStep();
+        };
+        $id('steps').appendChild(b);
+      });
+    }
+
+    function showStep() {
+      for (let i = 1; i <= MAX_STEP; i++) $id('s' + i).hidden = state.step !==
+        i;
+      $id('back').style.visibility = state.step === 1 ? 'hidden' : 'visible';
+      $id('next').style.visibility = state.step === MAX_STEP ? 'hidden' :
+        'visible';
+      renderSteps();
+      refresh();
+      if (state.step === 3 && map) setTimeout(() => map.invalidateSize(), 50);
+    }
+
+    function renderWindows() {
+      const tb = $id('winTbl').querySelector('tbody');
+      tb.innerHTML = '';
+      state.windows.forEach((w, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${i + 1}</td><td>${esc(w.item || '—')}</td>
       <td><input class="sm" data-k="w" value="${esc(w.w)}"></td>
       <td><input class="sm" data-k="h" value="${esc(w.h)}"></td>
       <td><input class="sm" data-k="qty" type="number" min="1" step="1" value="${esc(w.qty)}" style="width:64px"></td>
       <td class="num" data-o="sq"></td><td class="num" data-o="ln"></td><td class="num" data-o="lab"></td><td class="num" data-o="misc"></td>
       <td><button class="x" title="Remove">✕</button></td>`;
-    tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => { w[inp.dataset.k] = inp.value; refresh(); }));
-    tr.querySelector('.x').onclick = () => { state.windows.splice(i, 1); if (!state.windows.length) state.windows.push({ item: '', w: '', h: '', qty: 1 }); renderWindows(); refresh(); };
-    tb.appendChild(tr);
-  });
-}
-function renderAddons() {
-  const tb = $id('addTbl').querySelector('tbody'); tb.innerHTML = '';
-  ADDONS.forEach(a => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${a.label}</td><td><input class="sm" type="number" min="0" step="1" value="${state.addons[a.id] ?? ''}" style="width:70px"></td>
+        tr.querySelectorAll('input').forEach(inp => inp.addEventListener(
+          'input', () => {
+            w[inp.dataset.k] = inp.value;
+            refresh();
+          }));
+        tr.querySelector('.x').onclick = () => {
+          state.windows.splice(i, 1);
+          if (!state.windows.length) state.windows.push({
+            item: '',
+            w: '',
+            h: '',
+            qty: 1
+          });
+          renderWindows();
+          refresh();
+        };
+        tb.appendChild(tr);
+      });
+    }
+
+    function renderAddons() {
+      const tb = $id('addTbl').querySelector('tbody');
+      tb.innerHTML = '';
+      ADDONS.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          `<td>${a.label}</td><td><input class="sm" type="number" min="0" step="1" value="${state.addons[a.id] ?? ''}" style="width:70px"></td>
       <td class="num">${fmt(a.lab)}</td><td class="num">${a.misc ? fmt(a.misc) : '—'}</td><td class="num" data-l="${a.id}"></td><td class="num" data-m="${a.id}"></td>`;
-    tr.querySelector('input').addEventListener('input', e => { state.addons[a.id] = e.target.value; refresh(); });
-    tb.appendChild(tr);
-  });
-}
-function renderSelects() {
-  $id('jamb').innerHTML = '<option value="none">None</option>' +
-    JAMBS.map(j => `<option value="${j.id}">${j.label} — ${fmt(j.rate)}/ft</option>`).join('') + '<option value="custom">Custom jamb…</option>';
-  $id('casing').innerHTML = '<option value="none">None</option>' +
-    CASINGS.map(j => `<option value="${j.id}">${j.label} — ${fmt(j.rate)}/ft</option>`).join('') + '<option value="custom">Custom casing…</option>';
-}
-function renderTravelResult() {
-  const t = state.travelInfo, box = $id('travelResult');
-  if (!t) { box.innerHTML = ''; return; }
-  const ch = travelCharge(t.oneWayKm, t.oneWaySec);
-  const approx = t.source === 'search' && !t.precise;
-  const srcLine = t.source === 'pin' ? 'Using the <b>pinned location</b>.'
-    : t.source === 'paste' ? 'Using the <b>pasted coordinates</b>.'
-    : t.precise ? '<span class="badge exact">Exact address</span>'
-    : '<span class="badge approx">Street-level match</span> <span class="warn">The house number was not found, so this is the middle of the street. Drag the pin to the exact house, or paste coordinates from Google Maps.</span>';
-  box.innerHTML = `<div class="result ${approx ? 'approx' : ch.free ? 'free' : ''}">
+        tr.querySelector('input').addEventListener('input', e => {
+          state.addons[a.id] = e.target.value;
+          refresh();
+        });
+        tb.appendChild(tr);
+      });
+    }
+
+    function renderSelects() {
+      $id('jamb').innerHTML = '<option value="none">None</option>' +
+        JAMBS.map(j =>
+          `<option value="${j.id}">${j.label} — ${fmt(j.rate)}/ft</option>`)
+          .join('') + '<option value="custom">Custom jamb…</option>';
+      $id('casing').innerHTML = '<option value="none">None</option>' +
+        CASINGS.map(j =>
+          `<option value="${j.id}">${j.label} — ${fmt(j.rate)}/ft</option>`)
+          .join('') + '<option value="custom">Custom casing…</option>';
+    }
+
+    function renderTravelResult() {
+      const t = state.travelInfo,
+        box = $id('travelResult');
+      if (!t) {
+        box.innerHTML = '';
+        return;
+      }
+      const ch = travelCharge(t.oneWayKm, t.oneWaySec);
+      const approx = t.source === 'search' && !t.precise;
+      const srcLine = t.source === 'pin' ? 'Using the <b>pinned location</b>.' :
+        t.source === 'paste' ? 'Using the <b>pasted coordinates</b>.' :
+          t.precise ? '<span class="badge exact">Exact address</span>' :
+            '<span class="badge approx">Street-level match</span> <span class="warn">The house number was not found, so this is the middle of the street. Drag the pin to the exact house, or paste coordinates from Google Maps.</span>';
+      box.innerHTML = `<div class="result ${approx ? 'approx' : ch.free ? 'free' : ''}">
     <b>${esc(t.address)}</b><br>${srcLine}<br>
     Closest office: <b>${esc(t.office)}</b> — one way <b>${t.oneWayKm.toFixed(1)} km</b>, <b>${Math.round(t.oneWaySec / 60)} min</b> by road.<br>
     ${ch.free ? `Within ${RATES.freeOneWayKm} km one way — <b>no travel charge</b>.`
-      : `Round trip charged: <b>${ch.km.toFixed(1)} km</b> and <b>${ch.hours.toFixed(2)} h</b> (rounded up to a quarter hour).`}
+          : `Round trip charged: <b>${ch.km.toFixed(1)} km</b> and <b>${ch.hours.toFixed(2)} h</b> (rounded up to a quarter hour).`}
   </div>`;
-}
-function refresh() {
-  const c = calc(state);
-  document.querySelectorAll('#winTbl tbody tr').forEach((tr, i) => {
-    const l = c.lines[i];
-    tr.querySelector('[data-o=sq]').textContent = l ? l.sqft.toFixed(2) : '';
-    tr.querySelector('[data-o=ln]').textContent = l ? l.lin.toFixed(2) : '';
-    tr.querySelector('[data-o=lab]').textContent = l ? fmt(l.lab) : '';
-    tr.querySelector('[data-o=misc]').textContent = l ? fmt(l.misc) : '';
-  });
-  $id('wSq').textContent = c.sq.toFixed(2); $id('wLn').textContent = c.ln.toFixed(2);
-  $id('wLab').textContent = fmt(c.wLab); $id('wMisc').textContent = fmt(c.wMisc);
-  c.adds.forEach(a => {
-    const l = document.querySelector(`[data-l=${a.id}]`), m = document.querySelector(`[data-m=${a.id}]`);
-    if (l) { l.textContent = a.q ? fmt(a.labTot) : ''; m.textContent = a.q && a.misc ? fmt(a.miscTot) : ''; }
-  });
-  $id('aLab').textContent = fmt(c.aLab); $id('aMisc').textContent = fmt(c.aMisc);
-  $id('lnTotal').textContent = c.ln.toFixed(2);
-  $id('hours').disabled = state.crew === 'none';
-  $id('jambName').disabled = $id('jambRate').disabled = state.jamb.id !== 'custom';
-  $id('casingName').disabled = $id('casingRate').disabled = state.casing.id !== 'custom';
-  const rows = [['Labour — windows & per-window extras', c.labourWindows], ['Travel, set-up & fixed fee', c.extras], ['Misc', c.miscTotal], ['Jambs + casings', c.jc]];
-  if (c.discount) rows.push(['Monthly discount', -c.discount]);
-  rows.push(['Subtotal', c.subtotal]);
-  if (state.hstOn) rows.push(['HST 13%', c.hst]);
-  $id('sideBox').innerHTML = rows.map(r => `<div class="line"><span>${r[0]}</span><b>${fmt(r[1])}</b></div>`).join('') +
-    `<div class="line total"><span>Total</span><span>${fmt(c.total)}</span></div>`;
-  const sums = [
-    ['Windows labour (min $325 per window × qty)', c.wLab], ['Per-window extras — labour', c.aLab],
-    ['Vehicle (round-trip km × $0.98)', c.vehicle], ['Labour travel (round trip)', c.crewTravel], ['Per-job set-up fee', c.setup], ['All Job Set Up Fee (fixed)', c.fixed],
-    ['Labour total', c.labourTotal], ['Misc (windows + extras)', c.miscTotal],
-    ['Jamb' + (c.jamb ? ` — ${c.jamb.label}` : ' — none'), c.jambTot], ['Casing' + (c.casing ? ` — ${c.casing.label}` : ' — none'), c.casingTot],
-    ['Monthly discount', -c.discount], ['Subtotal before HST', c.subtotal], ['HST 13%', c.hst], ['TOTAL', c.total]
-  ];
-  $id('sumTbl').querySelector('tbody').innerHTML = sums.map(r => `<tr><td>${r[0]}</td><td class="num"><b>${fmt(r[1])}</b></td></tr>`).join('');
-  return c;
-}
+    }
 
-/* ================= TRAVEL LOOKUP ================= */
-let map = null, marker = null, lastLabel = '';
-async function apiGet(path) {
-  let res;
-  try { res = await fetch(API_BASE + path); }
-  catch (e) { throw new Error('Lookup is not reachable (it only works when deployed on Vercel). Enter km and hours manually.'); }
-  let data = {};
-  try { data = await res.json(); } catch (e) {}
-  if (!res.ok) throw new Error(data.error || ('Lookup failed (' + res.status + '). Enter km and hours manually.'));
-  return data;
-}
-function showMap(lat, lon) {
-  $id('mapWrap').hidden = false;
-  if (!window.L) { $id('mapHint').textContent = 'The map could not load (offline?). You can still paste coordinates.'; return; }
-  if (!map) {
-    map = L.map('map').setView([lat, lon], 15);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
-    marker = L.marker([lat, lon], { draggable: true }).addTo(map);
-    marker.on('dragend', () => {
-      const p = marker.getLatLng();
-      applyPoint({ lat: p.lat, lon: p.lng, label: (lastLabel ? lastLabel + ' — ' : '') + 'pinned', source: 'pin', precise: true }, false);
-    });
-  } else { marker.setLatLng([lat, lon]); map.setView([lat, lon], 15); }
-  setTimeout(() => map.invalidateSize(), 60);
-}
-async function applyPoint(pt, moveMarker = true) {
-  const status = $id('lookupStatus'), list = $id('sugg');
-  list.hidden = true; status.textContent = 'Finding the closest office…'; status.className = 'note';
-  try {
-    const d = await apiGet(`/api/route?lon=${pt.lon}&lat=${pt.lat}`);
-    state.travelInfo = { address: pt.label, office: d.office, oneWayKm: d.km, oneWaySec: d.seconds,
-      source: pt.source, precise: pt.precise, lat: pt.lat, lon: pt.lon };
-    const ch = travelCharge(d.km, d.seconds);
-    state.km = ch.km ? String(ch.km) : '0'; state.hours = ch.hours ? String(ch.hours) : '0';
-    if (state.crew === 'none') state.crew = '2';
-    $id('km').value = state.km; $id('hours').value = state.hours; $id('crew').value = state.crew;
-    if (moveMarker || !map) showMap(pt.lat, pt.lon);
-    status.textContent = 'Done. You can still edit the km and hours below.'; status.className = 'note ok';
-    renderTravelResult(); refresh();
-  } catch (e) { status.textContent = e.message; status.className = 'note bad'; }
-}
-async function doLookup() {
-  const status = $id('lookupStatus'), list = $id('sugg'), text = $id('addr').value.trim();
-  list.hidden = true; list.innerHTML = '';
-  if (text.length < 5) { status.textContent = 'Type a fuller address first.'; status.className = 'note bad'; return; }
-  $id('lookup').disabled = true; status.textContent = 'Searching…'; status.className = 'note';
-  try {
-    const { results } = await apiGet('/api/geocode?text=' + encodeURIComponent(text));
-    if (!results || !results.length) throw new Error('No matches found. Try adding the town, or paste coordinates from Google Maps.');
-    status.textContent = 'Pick the correct address:'; status.className = 'note';
-    results.forEach(r => {
-      const precise = isPrecise(r.layer, r.matchType);
-      const li = document.createElement('li');
-      li.innerHTML = `${esc(r.label)} <span class="badge ${precise ? 'exact' : 'approx'}">${precise ? 'exact' : 'street only'}</span>`;
-      li.onclick = () => { lastLabel = r.label; $id('addr').value = r.label; applyPoint({ lat: r.lat, lon: r.lon, label: r.label, source: 'search', precise }); };
-      list.appendChild(li);
-    });
-    list.hidden = false;
-  } catch (e) { status.textContent = e.message; status.className = 'note bad'; }
-  $id('lookup').disabled = false;
-}
-function useCoords() {
-  const status = $id('lookupStatus');
-  const c = parseCoords($id('coordIn').value);
-  if (!c) { status.textContent = 'Could not read coordinates. Use "48.6094, -93.4108" or a Google Maps link containing @lat,lon (must be in Canada).'; status.className = 'note bad'; return; }
-  lastLabel = '';
-  applyPoint({ lat: c.lat, lon: c.lon, label: `Coordinates ${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}`, source: 'paste', precise: true });
-}
-
-function wire() {
-  $id('quoteNo').oninput = e => state.quoteNo = e.target.value;
-  $id('customer').oninput = e => state.customer = e.target.value;
-  $id('addWin').onclick = () => { state.windows.push({ item: '', w: '', h: '', qty: 1 }); renderWindows(); refresh(); };
-  $id('lookup').onclick = doLookup;
-  $id('addr').addEventListener('keydown', e => { if (e.key === 'Enter') doLookup(); });
-  $id('coordBtn').onclick = useCoords;
-  $id('coordIn').addEventListener('keydown', e => { if (e.key === 'Enter') useCoords(); });
-  $id('km').oninput = e => { state.km = e.target.value; refresh(); };
-  $id('crew').onchange = e => { state.crew = e.target.value; refresh(); };
-  $id('hours').oninput = e => { state.hours = e.target.value; refresh(); };
-  $id('setup').onchange = e => { state.setup = e.target.value; refresh(); };
-  $id('jamb').onchange = e => { state.jamb.id = e.target.value; refresh(); };
-  $id('jambName').oninput = e => { state.jamb.name = e.target.value; refresh(); };
-  $id('jambRate').oninput = e => { state.jamb.rate = e.target.value; refresh(); };
-  $id('casing').onchange = e => { state.casing.id = e.target.value; refresh(); };
-  $id('casingName').oninput = e => { state.casing.name = e.target.value; refresh(); };
-  $id('casingRate').oninput = e => { state.casing.rate = e.target.value; refresh(); };
-  $id('discount').oninput = e => { state.discount = e.target.value; refresh(); };
-  $id('hstOn').onchange = e => { state.hstOn = e.target.value === '1'; refresh(); };
-  $id('back').onclick = () => { state.step = Math.max(1, state.step - 1); showStep(); };
-  $id('next').onclick = () => { state.step = Math.min(MAX_STEP, state.step + 1); showStep(); };
-  const drop = $id('drop'), file = $id('pdfFile');
-  drop.onclick = () => file.click();
-  drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
-  drop.ondragleave = () => drop.classList.remove('over');
-  drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) loadPdf(e.dataTransfer.files[0]); };
-  file.onchange = e => { if (e.target.files[0]) loadPdf(e.target.files[0]); e.target.value = ''; };
-  $id('exportXlsx').onclick = () => {
-    const note = $id('expNote');
-    try {
-      if (!window.XLSX) throw new Error('Excel library did not load. Connect to the internet and reload.');
+    function refresh() {
       const c = calc(state);
-      if (!c.lines.some(Boolean)) throw new Error('Add at least one window with a size and quantity first.');
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, buildSheet(state, c, XLSX), 'Fort Frances');
-      XLSX.writeFile(wb, `labour-${state.quoteNo || 'quote'}.xlsx`);
-      note.textContent = 'Exported.'; note.className = 'note ok';
-    } catch (err) { note.textContent = err.message; note.className = 'note bad'; }
-  };
-}
-async function loadPdf(file) {
-  const st = $id('pdfStatus');
-  try {
-    st.textContent = 'Reading ' + file.name + ' …'; st.className = 'note';
-    const { meta, parents } = parsePdfParents(await readPdfItems(file));
-    if (!parents.length) throw new Error('No numbered parent windows found.');
-    const missing = parents.filter(p => !parseInches(p.w) || !parseInches(p.h));
-    state.windows = parents.map(p => ({ item: p.item, w: p.w, h: p.h, qty: p.qty }));
-    if (meta.quote) { state.quoteNo = meta.quote; $id('quoteNo').value = meta.quote; }
-    if (meta.customer) { state.customer = meta.customer; $id('customer').value = meta.customer; }
-    renderWindows(); refresh();
-    st.textContent = `Loaded ${parents.length} parent window(s) from ${file.name}.` +
-      (missing.length ? ` Could not read the FR size for item(s) ${missing.map(m => m.item).join(', ')} — please enter manually.` : ' Review sizes and quantities.');
-    st.className = missing.length ? 'note bad' : 'note ok';
-  } catch (err) { st.textContent = 'PDF import failed: ' + err.message; st.className = 'note bad'; }
-}
-renderSelects(); renderWindows(); renderAddons(); wire(); showStep();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-</body></html>
+      document.querySelectorAll('#winTbl tbody tr').forEach((tr, i) => {
+        const l = c.lines[i];
+        tr.querySelector('[data-o=sq]').textContent = l ? l.sqft.toFixed(
+          2) : '';
+        tr.querySelector('[data-o=ln]').textContent = l ? l.lin.toFixed(2) :
+          '';
+        tr.querySelector('[data-o=lab]').textContent = l ? fmt(l.lab) : '';
+        tr.querySelector('[data-o=misc]').textContent = l ? fmt(l.misc) :
+          '';
+      });
+      $id('wSq').textContent = c.sq.toFixed(2);
+      $id('wLn').textContent = c.ln.toFixed(2);
+      $id('wLab').textContent = fmt(c.wLab);
+      $id('wMisc').textContent = fmt(c.wMisc);
+      c.adds.forEach(a => {
+        const l = document.querySelector(`[data-l=${a.id}]`),
+          m = document.querySelector(`[data-m=${a.id}]`);
+        if (l) {
+          l.textContent = a.q ? fmt(a.labTot) : '';
+          m.textContent = a.q && a.misc ? fmt(a.miscTot) : '';
+        }
+      });
+      $id('aLab').textContent = fmt(c.aLab);
+      $id('aMisc').textContent = fmt(c.aMisc);
+      $id('lnTotal').textContent = c.ln.toFixed(2);
+      $id('hours').disabled = state.crew === 'none';
+      $id('jambName').disabled = $id('jambRate').disabled = state.jamb.id !==
+        'custom';
+      $id('casingName').disabled = $id('casingRate').disabled = state.casing
+        .id !== 'custom';
+      const rows = [
+        ['Labour — windows & per-window extras', c.labourWindows],
+        ['Travel, set-up & fixed fee', c.extras],
+        ['Misc', c.miscTotal],
+        ['Jambs + casings', c.jc]
+      ];
+      if (c.discount) rows.push(['Monthly discount', -c.discount]);
+      rows.push(['Subtotal', c.subtotal]);
+      if (state.hstOn) rows.push(['HST 13%', c.hst]);
+      $id('sideBox').innerHTML = rows.map(r =>
+        `<div class="line"><span>${r[0]}</span><b>${fmt(r[1])}</b></div>`)
+        .join('') +
+        `<div class="line total"><span>Total</span><span>${fmt(c.total)}</span></div>`;
+      const sums = [
+        ['Windows labour (min $325 per window × qty)', c.wLab],
+        ['Per-window extras — labour', c.aLab],
+        ['Vehicle (round-trip km × $0.98)', c.vehicle],
+        ['Labour travel (round trip)', c.crewTravel],
+        ['Per-job set-up fee', c.setup],
+        ['All Job Set Up Fee (fixed)', c.fixed],
+        ['Labour total', c.labourTotal],
+        ['Misc (windows + extras)', c.miscTotal],
+        ['Jamb' + (c.jamb ? ` — ${c.jamb.label}` : ' — none'), c.jambTot],
+        ['Casing' + (c.casing ? ` — ${c.casing.label}` : ' — none'), c
+          .casingTot
+        ],
+        ['Monthly discount', -c.discount],
+        ['Subtotal before HST', c.subtotal],
+        ['HST 13%', c.hst],
+        ['TOTAL', c.total]
+      ];
+      $id('sumTbl').querySelector('tbody').innerHTML = sums.map(r =>
+        `<tr><td>${r[0]}</td><td class="num"><b>${fmt(r[1])}</b></td></tr>`)
+        .join('');
+      return c;
+    }
+
+    /* ================= TRAVEL LOOKUP ================= */
+    let map = null,
+      marker = null,
+      lastLabel = '';
+    async function apiGet(path) {
+      let res;
+      try {
+        res = await fetch(API_BASE + path);
+      } catch (e) {
+        throw new Error(
+          'Lookup is not reachable (it only works when deployed on Vercel). Enter km and hours manually.'
+        );
+      }
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (e) { }
+      if (!res.ok) throw new Error(data.error || ('Lookup failed (' + res
+        .status + '). Enter km and hours manually.'));
+      return data;
+    }
+
+    function showMap(lat, lon) {
+      $id('mapWrap').hidden = false;
+      if (!window.L) {
+        $id('mapHint').textContent =
+          'The map could not load (offline?). You can still paste coordinates.';
+        return;
+      }
+      if (!map) {
+        map = L.map('map').setView([lat, lon], 15);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        marker = L.marker([lat, lon], {
+          draggable: true
+        }).addTo(map);
+        marker.on('dragend', () => {
+          const p = marker.getLatLng();
+          applyPoint({
+            lat: p.lat,
+            lon: p.lng,
+            label: (lastLabel ? lastLabel + ' — ' : '') + 'pinned',
+            source: 'pin',
+            precise: true
+          }, false);
+        });
+      } else {
+        marker.setLatLng([lat, lon]);
+        map.setView([lat, lon], 15);
+      }
+      setTimeout(() => map.invalidateSize(), 60);
+    }
+    async function applyPoint(pt, moveMarker = true) {
+      const status = $id('lookupStatus'),
+        list = $id('sugg');
+      list.hidden = true;
+      status.textContent = 'Finding the closest office…';
+      status.className = 'note';
+      try {
+        const d = await apiGet(`/api/route?lon=${pt.lon}&lat=${pt.lat}`);
+        state.travelInfo = {
+          address: pt.label,
+          office: d.office,
+          oneWayKm: d.km,
+          oneWaySec: d.seconds,
+          source: pt.source,
+          precise: pt.precise,
+          lat: pt.lat,
+          lon: pt.lon
+        };
+        const ch = travelCharge(d.km, d.seconds);
+        state.km = ch.km ? String(ch.km) : '0';
+        state.hours = ch.hours ? String(ch.hours) : '0';
+        if (state.crew === 'none') state.crew = '2';
+        $id('km').value = state.km;
+        $id('hours').value = state.hours;
+        $id('crew').value = state.crew;
+        if (moveMarker || !map) showMap(pt.lat, pt.lon);
+        status.textContent =
+          'Done. You can still edit the km and hours below.';
+        status.className = 'note ok';
+        renderTravelResult();
+        refresh();
+      } catch (e) {
+        status.textContent = e.message;
+        status.className = 'note bad';
+      }
+    }
+    async function doLookup() {
+      const status = $id('lookupStatus'),
+        list = $id('sugg'),
+        text = $id('addr').value.trim();
+      list.hidden = true;
+      list.innerHTML = '';
+      if (text.length < 5) {
+        status.textContent = 'Type a fuller address first.';
+        status.className = 'note bad';
+        return;
+      }
+      $id('lookup').disabled = true;
+      status.textContent = 'Searching…';
+      status.className = 'note';
+      try {
+        const {
+          results
+        } = await apiGet('/api/geocode?text=' + encodeURIComponent(text));
+        if (!results || !results.length) throw new Error(
+          'No matches found. Try adding the town, or paste coordinates from Google Maps.'
+        );
+        status.textContent = 'Pick the correct address:';
+        status.className = 'note';
+        results.forEach(r => {
+          const precise = isPrecise(r.layer, r.matchType);
+          const li = document.createElement('li');
+          li.innerHTML =
+            `${esc(r.label)} <span class="badge ${precise ? 'exact' : 'approx'}">${precise ? 'exact' : 'street only'}</span>`;
+          li.onclick = () => {
+            lastLabel = r.label;
+            $id('addr').value = r.label;
+            applyPoint({
+              lat: r.lat,
+              lon: r.lon,
+              label: r.label,
+              source: 'search',
+              precise
+            });
+          };
+          list.appendChild(li);
+        });
+        list.hidden = false;
+      } catch (e) {
+        status.textContent = e.message;
+        status.className = 'note bad';
+      }
+      $id('lookup').disabled = false;
+    }
+
+    function useCoords() {
+      const status = $id('lookupStatus');
+      const c = parseCoords($id('coordIn').value);
+      if (!c) {
+        status.textContent =
+          'Could not read coordinates. Use "48.6094, -93.4108" or a Google Maps link containing @lat,lon (must be in Canada).';
+        status.className = 'note bad';
+        return;
+      }
+      lastLabel = '';
+      applyPoint({
+        lat: c.lat,
+        lon: c.lon,
+        label: `Coordinates ${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}`,
+        source: 'paste',
+        precise: true
+      });
+    }
+
+    function wire() {
+      $id('quoteNo').oninput = e => state.quoteNo = e.target.value;
+      $id('customer').oninput = e => state.customer = e.target.value;
+      $id('addWin').onclick = () => {
+        state.windows.push({
+          item: '',
+          w: '',
+          h: '',
+          qty: 1
+        });
+        renderWindows();
+        refresh();
+      };
+      $id('lookup').onclick = doLookup;
+      $id('addr').addEventListener('keydown', e => {
+        if (e.key === 'Enter') doLookup();
+      });
+      $id('coordBtn').onclick = useCoords;
+      $id('coordIn').addEventListener('keydown', e => {
+        if (e.key === 'Enter') useCoords();
+      });
+      $id('km').oninput = e => {
+        state.km = e.target.value;
+        refresh();
+      };
+      $id('crew').onchange = e => {
+        state.crew = e.target.value;
+        refresh();
+      };
+      $id('hours').oninput = e => {
+        state.hours = e.target.value;
+        refresh();
+      };
+      $id('setup').onchange = e => {
+        state.setup = e.target.value;
+        refresh();
+      };
+      $id('jamb').onchange = e => {
+        state.jamb.id = e.target.value;
+        refresh();
+      };
+      $id('jambName').oninput = e => {
+        state.jamb.name = e.target.value;
+        refresh();
+      };
+      $id('jambRate').oninput = e => {
+        state.jamb.rate = e.target.value;
+        refresh();
+      };
+      $id('casing').onchange = e => {
+        state.casing.id = e.target.value;
+        refresh();
+      };
+      $id('casingName').oninput = e => {
+        state.casing.name = e.target.value;
+        refresh();
+      };
+      $id('casingRate').oninput = e => {
+        state.casing.rate = e.target.value;
+        refresh();
+      };
+      $id('discount').oninput = e => {
+        state.discount = e.target.value;
+        refresh();
+      };
+      $id('hstOn').onchange = e => {
+        state.hstOn = e.target.value === '1';
+        refresh();
+      };
+      $id('back').onclick = () => {
+        state.step = Math.max(1, state.step - 1);
+        showStep();
+      };
+      $id('next').onclick = () => {
+        state.step = Math.min(MAX_STEP, state.step + 1);
+        showStep();
+      };
+      const drop = $id('drop'),
+        file = $id('pdfFile');
+      drop.onclick = () => file.click();
+      drop.ondragover = e => {
+        e.preventDefault();
+        drop.classList.add('over');
+      };
+      drop.ondragleave = () => drop.classList.remove('over');
+      drop.ondrop = e => {
+        e.preventDefault();
+        drop.classList.remove('over');
+        if (e.dataTransfer.files[0]) loadPdf(e.dataTransfer.files[0]);
+      };
+      file.onchange = e => {
+        if (e.target.files[0]) loadPdf(e.target.files[0]);
+        e.target.value = '';
+      };
+      $id('exportXlsx').onclick = () => {
+        const note = $id('expNote');
+        try {
+          if (!window.XLSX) throw new Error(
+            'Excel library did not load. Connect to the internet and reload.'
+          );
+          const c = calc(state);
+          if (!c.lines.some(Boolean)) throw new Error(
+            'Add at least one window with a size and quantity first.');
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, buildSheet(state, c, XLSX),
+            'Fort Frances');
+          XLSX.writeFile(wb, `labour-${state.quoteNo || 'quote'}.xlsx`);
+          note.textContent = 'Exported.';
+          note.className = 'note ok';
+        } catch (err) {
+          note.textContent = err.message;
+          note.className = 'note bad';
+        }
+      };
+    }
+    async function loadPdf(file) {
+      const st = $id('pdfStatus');
+      try {
+        st.textContent = 'Reading ' + file.name + ' …';
+        st.className = 'note';
+        const {
+          meta,
+          parents
+        } = parsePdfParents(await readPdfItems(file));
+        if (!parents.length) throw new Error(
+          'No numbered parent windows found.');
+        const missing = parents.filter(p => !parseInches(p.w) || !parseInches(
+          p.h));
+        state.windows = parents.map(p => ({
+          item: p.item,
+          w: p.w,
+          h: p.h,
+          qty: p.qty
+        }));
+        if (meta.quote) {
+          state.quoteNo = meta.quote;
+          $id('quoteNo').value = meta.quote;
+        }
+        if (meta.customer) {
+          state.customer = meta.customer;
+          $id('customer').value = meta.customer;
+        }
+        renderWindows();
+        refresh();
+        st.textContent =
+          `Loaded ${parents.length} parent window(s) from ${file.name}.` +
+          (missing.length ?
+            ` Could not read the FR size for item(s) ${missing.map(m => m.item).join(', ')} — please enter manually.` :
+            ' Review sizes and quantities.');
+        st.className = missing.length ? 'note bad' : 'note ok';
+      } catch (err) {
+        st.textContent = 'PDF import failed: ' + err.message;
+        st.className = 'note bad';
+      }
+    }
+    renderSelects();
+    renderWindows();
+    renderAddons();
+    wire();
+    showStep();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js">
+  </script>
+</body>
+
+</html>
