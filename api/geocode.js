@@ -1,9 +1,6 @@
-const NORTHWESTERN_ONTARIO = {
-  west: -95.5,
-  east: -89.0,
-  south: 48.0,
-  north: 54.5
-};
+// api/geocode.js
+// Vercel serverless function: address -> coordinates using Geoapify.
+// Keeps GEOAPIFY_API_KEY off the frontend.
 
 const cache = new Map();
 
@@ -16,6 +13,15 @@ module.exports = async (req, res) => {
     });
   }
 
+  const apiKey = process.env.GEOAPIFY_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({
+      error:
+        'Server is missing GEOAPIFY_API_KEY. Paste coordinates manually.'
+    });
+  }
+
   const cacheKey = text.toLowerCase();
 
   if (cache.has(cacheKey)) {
@@ -25,66 +31,51 @@ module.exports = async (req, res) => {
   }
 
   const params = new URLSearchParams({
-    q: text,
-    format: 'jsonv2',
-    addressdetails: '1',
+    text,
+    apiKey,
     limit: '5',
-    countrycodes: 'ca',
-    viewbox: [
-      NORTHWESTERN_ONTARIO.west,
-      NORTHWESTERN_ONTARIO.north,
-      NORTHWESTERN_ONTARIO.east,
-      NORTHWESTERN_ONTARIO.south
-    ].join(','),
-    bounded: '1'
+    filter: 'countrycode:ca',
+    bias: 'proximity:-93.4,49.2'
   });
 
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?${params.toString()}`,
-      {
-        headers: {
-          'User-Agent':
-            'FortFrancesWindowLabourCalculator/1.0 (contact: aanandsaini816@gmail.com)',
-          'Accept-Language': 'en-CA'
-        }
-      }
+      `https://api.geoapify.com/v1/geocode/search?${params.toString()}`
     );
 
     if (!response.ok) {
       return res.status(502).json({
         error:
-          `Nominatim returned ${response.status}. ` +
+          `Geoapify returned ${response.status}. ` +
           'Try again or paste coordinates manually.'
       });
     }
 
     const data = await response.json();
 
-    const results = data
-      .map(item => {
-        const lat = Number(item.lat);
-        const lon = Number(item.lon);
+    const results = (data.features || [])
+      .map(feature => {
+        const lon = feature.geometry?.coordinates?.[0];
+        const lat = feature.geometry?.coordinates?.[1];
 
         if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
           return null;
         }
 
-        if (!isNorthwesternOntario(lat, lon)) {
+        if (!isInNorthwesternOntario(lat, lon)) {
           return null;
         }
 
         return {
-          label: item.display_name,
+          label:
+            feature.properties?.formatted ||
+            feature.properties?.name ||
+            text,
           lat,
           lon,
           precise: Boolean(
-            item.address?.house_number &&
-            (
-              item.address?.road ||
-              item.address?.pedestrian ||
-              item.address?.residential
-            )
+            feature.properties?.housenumber ||
+            feature.properties?.rank?.confidence >= 0.8
           )
         };
       })
@@ -107,7 +98,7 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({ results });
   } catch (error) {
-    console.error('Nominatim error:', error);
+    console.error('Geoapify geocode error:', error);
 
     return res.status(502).json({
       error:
@@ -117,11 +108,11 @@ module.exports = async (req, res) => {
   }
 };
 
-function isNorthwesternOntario(lat, lon) {
+function isInNorthwesternOntario(lat, lon) {
   return (
-    lat >= NORTHWESTERN_ONTARIO.south &&
-    lat <= NORTHWESTERN_ONTARIO.north &&
-    lon >= NORTHWESTERN_ONTARIO.west &&
-    lon <= NORTHWESTERN_ONTARIO.east
+    lat >= 48.0 &&
+    lat <= 54.5 &&
+    lon >= -95.5 &&
+    lon <= -89.0
   );
 }
