@@ -1,3 +1,6 @@
+// api/route.js
+// Vercel serverless function: closest office by driving distance using ORS.
+
 const OFFICES = [
   {
     name: 'Fort Frances',
