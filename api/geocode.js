@@ -1,6 +1,7 @@
 // api/geocode.js
 // Vercel serverless function: address -> coordinates using Geocoder.ca.
-// The auth token stays on the server (GEOCODER_CA_AUTH environment variable).
+// Works with the free (throttled) port. If GEOCODER_CA_AUTH is set in Vercel,
+// the token is added automatically. The token never reaches the browser.
 
 const cache = new Map();
 
@@ -17,13 +18,6 @@ module.exports = async (req, res) => {
     .trim()
     .replace(/^["']|["']$/g, '');
 
-  if (!auth) {
-    return res.status(500).json({
-      error:
-        'Server is missing GEOCODER_CA_AUTH. Paste coordinates manually.'
-    });
-  }
-
   const cacheKey = text.toLowerCase();
 
   if (cache.has(cacheKey)) {
@@ -36,9 +30,10 @@ module.exports = async (req, res) => {
     json: '1',
     standard: '1',
     showpostal: '1',
-    region: 'ON',
-    auth
+    region: 'ON'
   });
+
+  if (auth) params.set('auth', auth);
 
   try {
     const response = await fetch(`https://geocoder.ca/?${params.toString()}`);
@@ -66,27 +61,31 @@ module.exports = async (req, res) => {
     }
 
     if (data.error) {
-      const code = data.error.code || '';
-      const description = data.error.description || '';
+      const errCode = String(
+        (typeof data.error === 'object' ? data.error.code : data.error) || ''
+      );
+      const errText =
+        typeof data.error === 'object' ? data.error.description || '' : '';
 
-      console.error('Geocoder.ca error:', code, description);
+      console.error('Geocoder.ca error:', errCode, errText);
 
-      if (String(code) === '001') {
+      if (errCode === '001') {
         return res.status(502).json({
           error:
             'Geocoder.ca rejected this server IP. Remove the IP restriction on your token.'
         });
       }
 
-      if (String(code) === '002') {
+      if (errCode === '002') {
         return res.status(502).json({
           error: 'Geocoder.ca credits are used up. Paste coordinates manually.'
         });
       }
 
-      if (String(code) === '003') {
+      if (errCode === '003') {
         return res.status(502).json({
-          error: 'Geocoder.ca token not found. Check GEOCODER_CA_AUTH in Vercel.'
+          error:
+            'Geocoder.ca token not found. Check GEOCODER_CA_AUTH in Vercel.'
         });
       }
 
@@ -142,6 +141,11 @@ module.exports = async (req, res) => {
     }
 
     cache.set(cacheKey, results);
+
+    res.setHeader(
+      'Cache-Control',
+      's-maxage=3600, stale-while-revalidate=86400'
+    );
 
     return res.status(200).json({ results });
   } catch (error) {
